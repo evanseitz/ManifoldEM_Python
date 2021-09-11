@@ -9,9 +9,6 @@ This software was developed in the Frank research group at Columbia University (
 3. Mashayekhi, G. ManifoldEM Matlab repository. https://github.com/GMashayekhi/ManifoldEM_Matlab
 4. Seitz, E. et al. Geometric machine learning informed by ground truth: Recovery of conformational continuum from single-particle cryo-EM data of biomolecules. bioRxiv, 2021.
 
-### Attribution
-If you find this code useful in your work, please cite (1) above and {**ManifoldEM Python repository**, `doi:`}.
-
 ### Contributions
 ManifoldEM Python team (alphabetically ordered):
 
@@ -25,6 +22,9 @@ ManifoldEM Python team (alphabetically ordered):
 - Evan Seitz, Columbia University
 
 Individual author contributions are provided in the headers of each script.
+
+### Attribution
+If you find this code useful in your work, please cite (1) above and {**ManifoldEM Python repository**, `doi:`}.
 
 ### License
 Copyright {2021}
