@@ -12,7 +12,6 @@ This software was developed in the Frank research group at Columbia University (
 ### Attribution
 If you find this code useful in your work, please cite (1) above and {**ManifoldEM Python repository**, `doi:`}.
 
-### License
 ManifoldEM Python team (alphabetically ordered):
 
 - Ali Dashti, University of Wisconsin-Milwaukee
@@ -26,6 +25,7 @@ ManifoldEM Python team (alphabetically ordered):
 
 Individual author contributions are provided in the headers of each script.
 
+### License
 Copyright {2021}
 
 The software, code sample and their documentation made available on this repository could include technical or other mistakes, inaccuracies or typographical errors. We may make changes to this software or documentation at any time without prior notice, and we assume no responsibility for errors or omissions therein.
