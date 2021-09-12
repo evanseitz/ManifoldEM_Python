@@ -21,13 +21,13 @@ ManifoldEM Python team (alphabetically ordered):
 - Peter Schwander, University of Wisconsin-Milwaukee
 - Evan Seitz, Columbia University
 
-Individual author contributions are provided in the headers of each script.
+Individual author contributions to code are provided in the headers of each script.
 
 ### Attribution
 If you find this code useful in your work, please cite {**ManifoldEM Python repository**, `doi:`}.
 
 ### License
-Copyright 2021
+Copyright {2021}
 
 The software, code sample and their documentation made available on this repository could include technical or other mistakes, inaccuracies or typographical errors. We may make changes to this software or documentation at any time without prior notice, and we assume no responsibility for errors or omissions therein.
 
