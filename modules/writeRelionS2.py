@@ -47,7 +47,6 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
     # S.M. June 2020
     if get_traj_bins:
 
-
         print('Extracting and writing individual trajectory data from selected projection directions ...')
 
         for num in range(0,numberOfJobs,numberOfWorkers):
@@ -70,14 +69,19 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
 
             idx = np.arange(num,numNext)
             xSel = np.array(xSelect)[idx]
+            #print('xSel shape:', xSel.shape)
+            #print('xSel', xSel)
+            
             for x in xSel:
-                #print('bx=',x)
                 i += 1
                 EL_file = '{}prD_{}'.format(p.EL_file, x)
                 File = '{}_{}_{}'.format(EL_file, p.trajName, 1)
                 data = myio.fin1(File)
 
                 IMGT = data['IMGT']
+                #print('prd=',x)
+                #print('sum IMGT=',sum(sum(IMGT)))
+                #print('IMGT=',np.shape(IMGT))
 
                 posPath = posPathAll[x]
                 psi1Path = posPsi1All[x]
@@ -106,7 +110,6 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
 
                 IMG1 = np.zeros((p.nClass, IMGT.shape[1]))
 
-
                 for bin in range(p.nClass - pathw + 1):
                     #print 'bin is', bin
                     if bin == p.nClass - pathw:
@@ -118,10 +121,11 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
 
 
                     if len(tauBin) == 0:
-                        #print 'bad bin is',bin
+                        #print('Bad bin:',bin)
                         continue
                     else:
                         imgs = IMGT[tauBin,:].astype(np.float32)
+                        #print('imgs',imgs.shape)
                         ar2 = tauEq[tauBin]
                         qs = q[:,tauBin]
                         nT = len(tauBin)
@@ -165,7 +169,7 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
 
     # S.M. June 2020
     # loop through the nClass again and convert each list in the list to array
-    for bin in range(42, p.nClass - pathw + 1):
+    for bin in range(0, p.nClass - pathw + 1):
         print('\nConcatenated bin:',bin)
 
 
