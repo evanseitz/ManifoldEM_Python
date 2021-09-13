@@ -35,10 +35,10 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
     # S.M. June 2020
     i = 0
     pathw = p.width_1D
-    print('pathw',pathw)
+    #print('pathw',pathw)
     
     # TO DO: Have to find a way to control this from the GUI and also write extra steps to provide resume capability
-    get_traj_bins=0 # if 1, then the trajectory data is extracted from selected PDs, 
+    get_traj_bins=1 # if 1, then the trajectory data is extracted from selected PDs, 
                     #if 0 then we skip this and read from previously saved files
     numberOfWorkers = 20 # determines how many PDs will be processed and saved together in a single pickle file
                          # higer values mean overall fewer files written, but will also need more memory to write and read later.
@@ -51,7 +51,7 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
         print('Extracting and writing individual trajectory data from selected projection directions ...')
 
         for num in range(0,numberOfJobs,numberOfWorkers):
-            print('\nnum',num)
+            #print('\nnum',num)
 
             imgss = [[]]*p.nClass
             phis = [[]]*p.nClass
@@ -71,7 +71,7 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
             idx = np.arange(num,numNext)
             xSel = np.array(xSelect)[idx]
             for x in xSel:
-                print('bx=',x)
+                #print('bx=',x)
                 i += 1
                 EL_file = '{}prD_{}'.format(p.EL_file, x)
                 File = '{}_{}_{}'.format(EL_file, p.trajName, 1)
@@ -158,7 +158,7 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
             v_list = [imgss,phis,thetas,psis]
             myio.fout1(traj_bin_file,key_list,v_list)
             time.sleep(10)
-            print('done saving this group')
+            print('Done saving group.')
 
     else:
         print('Reading previously generated trajectory data from saved projection directions...')
@@ -166,7 +166,7 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
     # S.M. June 2020
     # loop through the nClass again and convert each list in the list to array
     for bin in range(42, p.nClass - pathw + 1):
-        print('\nConcatenated bin',bin)
+        print('\nConcatenated bin:',bin)
 
 
         for num in range(0,numberOfJobs,numberOfWorkers):
@@ -208,7 +208,7 @@ def op(trajTaus, posPsi1All, posPathAll, xSelect, tauAvg, *argv):
                 #print 'imgs',np.shape(imgs)
 
         if len(imgss_bin_g[bin]) == 0:
-            print('bad bin is',bin)
+            print('Bad bin:',bin)
             continue
 
         # reset , clear variables from workspace
