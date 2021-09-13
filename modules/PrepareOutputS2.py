@@ -29,12 +29,9 @@ def op(*argv):
     time.sleep(5)
     import p
 
-
     set_params.op(1)
     #ComputeEnergy1D.op() # this is s a repeat , commented out
     print("Writing output files...")
-
-
     
     data = myio.fin1(p.CC_file)
     psiNumsAll = data['psinums']
@@ -61,7 +58,7 @@ def op(*argv):
     for x in xSelect:
         EL_file = '{}prD_{}'.format(p.EL_file, x)
         File = '{}_{}_{}'.format(EL_file,p.trajName,1)
-        print('var x',x)
+        #print('var x',x)
         #print File
         if os.path.exists(File):
             data = myio.fin1(File)

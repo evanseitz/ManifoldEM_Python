@@ -57,7 +57,7 @@ def op(*argv):
 
     #print 'x loop 1'
     for x in xSelect:
-        print('x1:',x)
+        #print('x1:',x)
         EL_file = '{}prD_{}'.format(p.EL_file, x)
         File = '{}_{}_{}'.format(EL_file,p.trajName,1)
 
@@ -80,7 +80,7 @@ def op(*argv):
 
     #print 'x loop 2'
     for x in xSelect:
-        print('x2:',x)
+        #print('x2:',x)
         tau = trajTaus[x]
         tau = tau.flatten()
         #print 'tau1',tau
