@@ -47,7 +47,7 @@ def op(*argv):
     range = np.delete(range1, a)
     a = np.nonzero(p.trash_list == 1)[0]  # unassigned states, python
     range = np.delete(range,a)
-    xSelect = range[0:5]
+    xSelect = range
 
     # getFromFileS2
     xLost = []
