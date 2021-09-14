@@ -7664,7 +7664,7 @@ class TauCanvas(QtGui.QDialog):
         for tick in self.ax2.yaxis.get_major_ticks():
             tick.label.set_fontsize(4)
             
-        self.ax1.set_title('Parameterization', fontsize=6)
+        #self.ax1.set_title('Parameterization', fontsize=6)
         self.ax1.set_xlabel('NLSA States', fontsize=5)
         #self.ax1.set_xlabel(r'$\mathrm{\tau}$', fontsize=7)
         self.ax1.set_ylabel('NLSA Image Indices', fontsize=5)
@@ -7672,7 +7672,7 @@ class TauCanvas(QtGui.QDialog):
         self.ax1.set_xlim(xmin=0, xmax=1)
         self.ax1.set_ylim(ymin=0, ymax=np.shape(tau)[0])
 
-        self.ax2.set_title('PD Occupancy', fontsize=6)
+        #self.ax2.set_title('PD Occupancy', fontsize=6)
         self.ax2.set_xlabel('NLSA States', fontsize=5)
         self.ax2.set_ylabel('NLSA Occupancy', fontsize=5)
 
@@ -8544,7 +8544,7 @@ class MainWindow(QtGui.QMainWindow):
                     fname = open(os.path.join(P1.user_directory,'outputs_{}/selecGCs'.format(p.proj_name)), 'rb')
                     data = pickle.load(fname)
                     P1.S2 = data['S2']
-                    P1.CG = data['CG']
+                    P1.CG = data['CG']                    
 
                     print('\twindow size: %s' % (p.nPix))
                     print('\tspherical aberration: %s' % (p.Cs))
