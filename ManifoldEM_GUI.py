@@ -99,9 +99,10 @@ Contact: evan.e.seitz@gmail.com
 # Global assets:
 # =============================================================================
 progname = 'ManifoldEM'
-progversion = '0.2.0-beta' 
+progversion = '0.2.0-beta'
+Beta = True #set to 'True' to disable 2D options; if disabled ('False') within this Beta, demo Ribosome energy landscape can be examined (only) using GUI
 #0.1.0: alpha (01.28.19)
-#0.2.0: beta (09.01.20) #ZULU update for release
+#0.2.0: beta (10.01.21) #ZULU update for release
 font_header = QtGui.QFont('Arial', 13)
 font_standard = QtGui.QFont('Arial', 12)
 anchorsMin = 1 #set minimum number of anchors needed for Belief Propagation
@@ -732,7 +733,7 @@ class P1(QtGui.QWidget):
     user_shannon = 0.0
     user_width = 0.0
     S2rescale = 1.0
-    relion_data = True #True for .star (ZULU: need to update for future RELION versions)
+    relion_data = True #True for .star (ZULU: need to update this to instead correspond to different RELION versions; 'False' no longer used)
     q = []
     S2 = []
     df = []
@@ -1333,7 +1334,7 @@ class P3(QtGui.QWidget):
     col = []
     user_processors = 1
     user_psi = 5
-    user_dimensions = 2
+    user_dimensions = 1
     dictGen = False
     # threading:
     progress1Changed = QtCore.Signal(int)
@@ -1695,9 +1696,14 @@ class P3(QtGui.QWidget):
 
         P3.entry_dim = QtGui.QSpinBox(self)
         P3.entry_dim.setMinimum(1)
-        P3.entry_dim.setMaximum(2) #up to 2D currently allowed
-        P3.entry_dim.setValue(2)
-        P3.entry_dim.setDisabled(False)
+        if Beta is True:
+            P3.entry_dim.setMaximum(1)
+            P3.entry_dim.setValue(1)
+            P3.entry_dim.setDisabled(True)
+        else:
+            P3.entry_dim.setMaximum(2)
+            P3.entry_dim.setValue(2)
+            P3.entry_dim.setDisabled(False)
         P3.entry_dim.valueChanged.connect(choose_dimensions)
         P3.entry_dim.setToolTip('The number of orthogonal conformational coordinates to compare within the energy landscape.')
         P3.entry_dim.setStyleSheet("QSpinBox { width : 100px }")
@@ -1939,7 +1945,7 @@ class P3(QtGui.QWidget):
         P3.PrD_total = len(P1.x2)
         P4.entry_PrD.setMaximum(P3.PrD_total) #updates P4
         P4.entry_PrD.setSuffix(' / %s' % (P3.PrD_total))
-        P4.viz2.update_scene3() #ZULUR redundant when resuming?
+        P4.viz2.update_scene3() #ZULU redundant when resuming?
         P4.viz2.update_viewP4(float(P3.phi[0]),
                             float(P3.theta[0]),
                             P4.viz2.view_anglesP4(dialog = False)) #grab current zoom
@@ -4091,7 +4097,7 @@ class Erg2dMain(QtGui.QDialog):
         self.label_Hline.show()
         
         Erg2dMain.progress7 = QtGui.QProgressBar(minimum=0, maximum=100, value=0)
-        #self.progress7Changed.connect(self.on_progress7Changed) #ZULU1!
+        #self.progress7Changed.connect(self.on_progress7Changed) #ZULU
         layout.addWidget(Erg2dMain.progress7, 11, 9, 1, 4)
         Erg2dMain.progress7.setDisabled(True) #ZULU undo when progress is initiated
         Erg2dMain.progress7.show()
@@ -4256,7 +4262,7 @@ class Erg2dMain(QtGui.QDialog):
             box.setInformativeText(msg)
             reply = box.exec_()
 
-    def laFinalDialog(self): #ZULU -> make so only activated if path of least action present!!
+    def laFinalDialog(self): #ZULU -> make so only activated if path of least action present
         #if len(Erg2dUpdate.points_in_line) > 1: #ZULU. equivalent needed (see message above)
         msg = 'Performing this action will generate the 3D structural sequence \
                 for the precomputed path of least action.\
@@ -9654,23 +9660,17 @@ class MainWindow(QtGui.QMainWindow):
         if iconDir:
             box.setIconPixmap(QtGui.QPixmap(iconDir)) #ZULU
         box.setInformativeText('<span style="font-weight:normal;">\
-                                %s __Insert_Lab_Name__, __Year__\
+                                %s Frank Lab, 2021\
                                 <br /><br />\
                                 <b>LICENSE:</b>\
                                 <br /><br />\
-                                __license_paragraph_1__.\
-                                <br /><br />\
-                                __license_paragraph_2__.\
-                                <br /><br />\
-                                You should have received a copy of the __license_type__\
-                                License along with this program, which can be found at\
-                                http://www.__license_address__.\
+                                You should have received a copy of the GNU General Public\
+                                License along with this program.\
                                 <br /><br />\
                                 <b>Contact:</b>\
-                                __contact_email__\
+                                Please refer to our user manual for information on\
+                                contacting our team for software support.\
                                 <br /><br />\
-                                <b>Cite:</b>\
-                                www.temp.com\
                                 </span>' % (u"\u00A9"))
         box.setStandardButtons(QtGui.QMessageBox.Ok)        
         ret = box.exec_()
