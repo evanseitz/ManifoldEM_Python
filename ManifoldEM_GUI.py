@@ -4534,33 +4534,7 @@ class Erg2dUpdate(Erg2dCanvas):
         return points_in_line
     
 
-
-
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-    
-        
         '''
-
-
-
-
-
-
-
-
         global completeDialog 
         def completeDialog():
             msg = '3D structural sequence exported successfully. Please refer to the\
@@ -9667,9 +9641,10 @@ class MainWindow(QtGui.QMainWindow):
                                 You should have received a copy of the GNU General Public\
                                 License along with this program.\
                                 <br /><br />\
-                                <b>Contact:</b>\
-                                Please refer to our user manual for information on\
-                                contacting our team for software support.\
+                                <b>CONTACT:</b>\
+                                <br /><br />\
+                                Please refer to our user manual for all inquiries, including\
+                                preferred methods for contacting our team for software support.\
                                 <br /><br />\
                                 </span>' % (u"\u00A9"))
         box.setStandardButtons(QtGui.QMessageBox.Ok)        
