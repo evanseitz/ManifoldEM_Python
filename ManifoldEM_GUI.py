@@ -3877,11 +3877,11 @@ class Erg1dUpdate(Erg1dCanvas):
         else:
             self.axes.set_xlabel('Conformational Coordinate 2', fontsize=6)
         if Erg1dMain.occ is True:
-            im = self.axes.plot(LS1d, linewidth=1, c='#d62728') #C2
+            im = self.axes.plot(np.arange(1,51), LS1d, linewidth=1, c='#d62728') #C2
             self.axes.set_title('1D Occupancy Map', fontsize=8)
             self.axes.set_ylabel('Occupancy', fontsize=6)
         else:
-            im = self.axes.plot(LS1d, linewidth=1, c='#1f77b4') #C0
+            im = self.axes.plot(np.arange(1,51), LS1d, linewidth=1, c='#1f77b4') #C0
             self.axes.set_title('1D Energy Path', fontsize=8)
             self.axes.set_ylabel('Energy (kcal/mol)', fontsize=6)
 
