@@ -27,10 +27,10 @@ for i in xrange(*states):
     rc('set projection orthographic')
     #rc('unset depthCue')
     if 1: #SURFACE REPRESENTATION
-        rc('volume #%d show style surface step 1 level 0.015 color gray' % (i-1))
+        rc('volume #%d show style surface step 2 level 0.011 color gray' % (i-1))
     else: #SOLID REPRESENTATION
         rc('volume #%d show style solid step 1 color gray' % (i-1))
-    rc('sop hideDust #%d size 50' % (i-1))
+    rc('sop hideDust #%d size 200' % (i-1))
     rc('wait %d' % wait_time)
     rc('copy file ' + outDir + '_%s.png' % i)
     rc('volume #%d hide' % (i-1))

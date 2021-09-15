@@ -181,6 +181,7 @@ def create_dir():
     post4 = os.path.join(pp_dir, '3_GenGif.py')
     post5 = os.path.join(pp_dir, 'mrc2svd.py')
     post6 = os.path.join(pp_dir, 'mrc2svd.sh')
+    post7 = os.path.join(pp_dir, 'mrc2denoise.py')
 
     copyfile(post1, os.path.join(vol_dir, 'mrcs2mrc.sh'))
     copyfile(post2, os.path.join(anim_dir, '1_CreateSession.py'))
@@ -188,6 +189,7 @@ def create_dir():
     copyfile(post4, os.path.join(anim_dir, '3_GenGif.py'))
     copyfile(post5, os.path.join(svd_dir, 'mrc2svd.py'))
     copyfile(post6, os.path.join(svd_dir, 'mrc2svd.sh'))
+    copyfile(post7, os.path.join(svd_dir, 'mrc2denoise.py'))
 
     #################
 
