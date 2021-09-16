@@ -5549,8 +5549,8 @@ class PrD_Viz(QtGui.QMainWindow):
         global vid_tabs
         vid_tabs = QtGui.QTabWidget(self)
         vid_tabs.addTab(vid_tab1, 'Movie Player')
-        vid_tabs.addTab(vid_tab2, '2D Manifold')
-        vid_tabs.addTab(vid_tab3, '3D Manifold')
+        vid_tabs.addTab(vid_tab2, '2D Embedding')
+        vid_tabs.addTab(vid_tab3, '3D Embedding')
         vid_tabs.addTab(vid_tab4, 'Chronograms')
         vid_tabs.addTab(vid_tab5, 'Psi Analysis')
         vid_tabs.addTab(vid_tab6, 'Tau Analysis')
@@ -6546,6 +6546,7 @@ class Manifold2dCanvas(QtGui.QDialog):
             vid_tabs.setTabEnabled(2, False)
             vid_tabs.setTabEnabled(3, False)
             vid_tabs.setTabEnabled(4, False)
+            vid_tabs.setTabEnabled(5, False)
 
             if P4.origEmbed[P4.user_PrD - 1] == 1: #only make a copy of current if this is user's first re-embedding
                 backup.op(P4.user_PrD, 1) #makes copy in Topos/PrD and DiffMaps
@@ -6584,6 +6585,7 @@ class Manifold2dCanvas(QtGui.QDialog):
             vid_tabs.setTabEnabled(2, False)
             vid_tabs.setTabEnabled(3, False)
             vid_tabs.setTabEnabled(4, False)
+            vid_tabs.setTabEnabled(5, False)
 
             P4.origEmbed[P4.user_PrD - 1] = 1
             backup.op(P4.user_PrD, -1)
@@ -6622,6 +6624,7 @@ class Manifold2dCanvas(QtGui.QDialog):
             vid_tabs.setTabEnabled(2, True)
             vid_tabs.setTabEnabled(3, True)
             vid_tabs.setTabEnabled(4, True)
+            vid_tabs.setTabEnabled(5, True)
 
             msg = 'The manifold for PD %s has been successfully reverted.' % (P4.user_PrD)
             box = QtGui.QMessageBox(self)
@@ -6746,6 +6749,7 @@ class Manifold2dCanvas(QtGui.QDialog):
             vid_tabs.setTabEnabled(2, True)
             vid_tabs.setTabEnabled(3, True)
             vid_tabs.setTabEnabled(4, True)
+            vid_tabs.setTabEnabled(5, True)
 
             msg = 'The manifold for PD %s has been successfully re-embedded.' % (P4.user_PrD)
             box = QtGui.QMessageBox(self)
