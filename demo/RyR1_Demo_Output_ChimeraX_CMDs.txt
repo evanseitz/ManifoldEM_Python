@@ -1,0 +1,17 @@
+ChimeraX commands used for producing final movie (SVD and Gaussian filter) in “RyR1_Demo_Output.mp4”:
+
+%%% E. Seitz, CU 2021
+
+GUI: Load in all 50 NLSA volumes from ‘/post/2_svd’ directory
+GUI: Graphics —> Full
+CMD: camera ortho
+CMD: volume #0-50 step 1
+CMD: volume gaussian #0-50 sdev 1
+GUI: Delete original volumes (“close”); keep new Gaussian filtered volumes
+CMD: volume #0-200 level .0095
+CMD: surface dust #0-200 size 50
+CMD: volume #0-200 color 70,70,70
+GUI: turn x -90
+GUI-1: enable the first volume only
+CMD-2: save 01.png width 1600 height 1600 supersample 3
+{repeat GUI-1 and CMD-2 steps for each volume… there may be a built in way (?)}
