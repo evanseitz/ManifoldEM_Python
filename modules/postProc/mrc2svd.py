@@ -12,8 +12,8 @@ Topo_list = [0, 1] #list of eigenvectors to retain; [0,1] for first 2... [0,1,2]
 ################################################################################
 # SINGULAR VALUE DECOMPOSITION #
 ## Copyright (c) UWM Ghoncheh Mashayekhi 2019
-## Copyright (c) Columbia University Hstau Liao 2019
 ## Copyright (c) Columbia University Evan Seitz 2019
+## Copyright (c) Columbia University Hstau Liao 2019
 ################################################################################
 
 def op(svd_dir, proj_name, user_dir):
@@ -23,15 +23,22 @@ def op(svd_dir, proj_name, user_dir):
     set_params.op(1)
     outputsDir = os.path.join(p.user_dir, 'outputs_%s' % proj_name)
     
-    b = np.zeros((p.nPix**3,p.nClass),dtype=np.float32)
+    #b = np.zeros((p.nPix**3,p.nClass),dtype=np.float32)
+    b_Out = os.path.join(outputsDir, 'post/2_svd/bins.dat')
+    b = np.memmap(b_Out, dtype='float32', mode='w+', shape=(p.nPix**3,p.nClass))
+    
+    print('Loading %s volumes...' % p.nClass)
     for bin in range(p.nClass):
         rec_file = os.path.join(outputsDir, 'post/1_vol/EulerAngles_{}_{}_of_{}.mrc'.format(p.trajName, bin + 1, p.nClass))
         with mrcfile.open(rec_file) as mrc:
             vol = mrc.data
             b[:,bin] = vol.flatten()
+            mrc.close()
+            print('Input volume:', (bin+1))
     topoNum = 8 #number of topos considered
     print('Performing SVD...')
-    U, S, V = svdRF.op(b) 
+    U, S, V = svdRF.op(b)
+    print('SVD complete. Preparing volumes...')
     sdiag = np.diag(S)
 
     plt.plot(sdiag**2) #S is square roots of non-zero eigenvalues, thus square diagonal of S
@@ -54,7 +61,11 @@ def op(svd_dir, proj_name, user_dir):
         Topo_mean[ii,:] = np.mean(Topo, axis=1)
     Topo_mean = Topo_mean.reshape((topoNum,p.nPix,p.nPix,p.nPix))
     Topo_mean = Topo_mean.astype(np.float32)
-    ConImgT = np.zeros((max(U.shape), p.nClass), dtype='float64')
+    
+    #ConImgT = np.zeros((max(U.shape), p.nClass), dtype='float64')
+    ConImgT_Out = os.path.join(outputsDir, 'post/2_svd/ConImgT.dat')
+    ConImgT = np.memmap(ConImgT_Out, dtype='float64', mode='w+', shape=(max(U.shape), p.nClass))
+    
     for i in Topo_list:
         # %ConImgT = U(:,i) *(sdiag(i)* V(:,i)')*psiC';
         ConImgT = ConImgT + np.matmul(U[:, i].reshape(-1, 1), sdiag[i] * (V[:, i].reshape(1, -1)))
@@ -64,15 +75,21 @@ def op(svd_dir, proj_name, user_dir):
     #ConImgT = ConImgT.T
     #ConImgT = ConImgT.reshape((p.nClass,p.nPix,p.nPix,p.nPix))
 
+    print('Outputting %s volumes...' % p.nClass)
     for bin in range(p.nClass):
         rec1_file = os.path.join(outputsDir, 'post/2_svd/SVDimgsRELION_{}_{}_of_{}.mrc'.format(p.trajName, bin + 1, p.nClass))
         mrc = mrcfile.new(rec1_file)
         mrc.set_data(ConImgT[bin,:,:,:])
+        print('Output volume:', (bin+1))
 
     for t in range(topoNum):
         toporec_file = os.path.join(outputsDir, 'post/2_svd/SVDTOPOimgsRELION_{}_{}_of_{}.mrc'.format(p.trajName, t + 1, p.nClass))
         mrc = mrcfile.new(toporec_file)
         mrc.set_data(Topo_mean[t,:,:,:])
+    
+    # remove temporary (large) files saved via memmap:
+    os.remove(os.path.join(outputsDir, 'post/2_svd/bins.dat'))
+    os.remove(os.path.join(outputsDir, 'post/2_svd/ConImgT.dat'))
         
 
 if __name__ == '__main__':

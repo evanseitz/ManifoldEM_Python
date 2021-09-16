@@ -9,7 +9,7 @@ from pylab import plot, loadtxt, imshow, show, xlabel, ylabel
 
 '''
 first, source 'ManifoldEM' conda environment;
-#then run bash script (which will access this one) via: 'sh mrc2denoise.sh'
+then run bash script (which will access this one) via: 'sh mrc2denoise.sh'
 denoising type: "Gaussian" or "median"
 kernel/window size: k=5
 beginnig and ending frames affected: f=5 
@@ -40,7 +40,7 @@ def op(proj_name, user_dir, type, f, k):
         if type == 'Gaussian':
             vol = ndimage.gaussian_filter(vol,k)
         elif type == 'median':
-            vol = ndimage.gaussian_filter(vol, k)
+            vol = ndimage.median_filter(vol, k)
         else:
             continue
         vol = vol.astype(np.float32)
