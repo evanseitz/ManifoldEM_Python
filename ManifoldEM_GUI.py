@@ -2386,7 +2386,7 @@ class P4(QtGui.QWidget):
             box.setDefaultButton(QtGui.QMessageBox.Ok)
             ret = box.exec_()
 
-        self.label_topos = QtGui.QLabel("View Topograms")
+        self.label_topos = QtGui.QLabel("View Topos")
         self.label_topos.setFont(font_standard)
         self.label_topos.setMargin(0)
         self.label_topos.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
@@ -5551,7 +5551,7 @@ class PrD_Viz(QtGui.QMainWindow):
         vid_tabs.addTab(vid_tab1, 'Movie Player')
         vid_tabs.addTab(vid_tab2, '2D Embedding')
         vid_tabs.addTab(vid_tab3, '3D Embedding')
-        vid_tabs.addTab(vid_tab4, 'Chronograms')
+        vid_tabs.addTab(vid_tab4, 'Chronos')
         vid_tabs.addTab(vid_tab5, 'Psi Analysis')
         vid_tabs.addTab(vid_tab6, 'Tau Analysis')
         #vid_tabs.setTabEnabled(1, False)
