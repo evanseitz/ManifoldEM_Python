@@ -150,7 +150,7 @@ Copyright (c) Columbia University Suvrajit Maji 2018
 Copyright (c) Columbia University Hstau Liao 2018 (python version)
 '''
 
-def getPsiSensesfromNodeLabels(nodeState,NumPsis):
+def getPsiSensesfromNodeLabels(nodeState, NumPsis):
 
     nodePsiLabels = nodeState
     psinums = (nodePsiLabels % NumPsis)
@@ -183,10 +183,10 @@ Copyright (c) Columbia University Hstau Liao 2018 (python version)
 def op(G,BPoptions,edgeMeasures,edgeMeasures_tblock,badNodesPsis,cc,*argv):
 
     # some settings
-    anchorNodePotValexp = 110
+    anchorNodePotValexp = 110.0
 
-    badNodePotVal = 1e-18
-    lowNodePotVal = 1e-18
+    badNodePotVal = 1.0e-20
+    lowNodePotVal = 1.0e-20
 
     enforceBadStateRemoval=0
 
@@ -256,7 +256,7 @@ def op(G,BPoptions,edgeMeasures,edgeMeasures_tblock,badNodesPsis,cc,*argv):
     #print 'bp-badNodesPsisTau',badNodesPsisTau[0:10,:]
 
     # from bad taus (badNodesPsisTau) and split block movies (badNodesPsis)
-    if (badNodesPsis.shape[0]== badNodesPsisTau.shape[0]) and (badNodesPsis.shape[1]== badNodesPsisTau.shape[1]):
+    if (badNodesPsis.shape[0] == badNodesPsisTau.shape[0]) and (badNodesPsis.shape[1] == badNodesPsisTau.shape[1]):
         badNodesPsis2 =  badNodesPsis + badNodesPsisTau
     else:
         badNodesPsis2 =  badNodesPsis
@@ -269,7 +269,7 @@ def op(G,BPoptions,edgeMeasures,edgeMeasures_tblock,badNodesPsis,cc,*argv):
         #print 'bp-badNodesPsis2',badNodesPsis2[0:10,:]
         for n in range(badNodesPsis2.shape[0]): # row has prd numbers, column has psi number so shape is (num_prds,2)
             #remember that badNodePsis has index starting with 1 ??
-            badPsis = np.nonzero(badNodesPsis2[n,:]<=-100)[0]
+            badPsis = np.nonzero(badNodesPsis2[n, :] <= -100)[0]
             #print 'n',n,'badPsis',badPsis
             for k in badPsis:
                 if k < NumPsis:
@@ -279,8 +279,8 @@ def op(G,BPoptions,edgeMeasures,edgeMeasures_tblock,badNodesPsis,cc,*argv):
                     nodePot[k,n] = badNodePotVal
                     nodePot[k-NumPsis,n] = badNodePotVal
 
-            #if len(badPsis)==badNodesPsis2.shape[1]: # all columns
-            if len(badPsis)>=badNodesPsis2.shape[1]-1: # all columns, or less one bad ?
+            if len(badPsis)==badNodesPsis2.shape[1]: # all columns should be bad
+            #if len(badPsis)>=badNodesPsis2.shape[1]-1: # all columns, or less one bad ?
                 nodesAllBadPsis.append(n)
             #print 'nodePot',nodePot[:,n]
 

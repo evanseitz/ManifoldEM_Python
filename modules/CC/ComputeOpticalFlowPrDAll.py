@@ -86,9 +86,9 @@ def stackDicts(a, b, op=operator.concat):
     return mergeDict
 
 
-def ComputePsiMovieOpticalFlow(Mov,opt_movie,prds_psinums):
+def ComputePsiMovieOpticalFlow(Mov, opt_movie, prds_psinums):
 
-    OFvisualPrint = [opt_movie['OFvisual'],opt_movie['printFig']]
+    OFvisualPrint = [opt_movie['OFvisual'], opt_movie['printFig']]
     Labels = ['FWD','REV']
 
     computeOF = 1
@@ -143,14 +143,14 @@ def ComputePsiMovieOpticalFlow(Mov,opt_movie,prds_psinums):
                     blockMovieFWD = MFWD[frameStart:frameEnd,:]
                     #blockMovieREV = MREV[frameStart:frameEnd,:]
 
-                    #print 'Computing Optical Flow for Movie Forward ...'
+                    #print('Computing Optical Flow for Movie Forward ...')
                     FlowVecFblock = OpticalFlowMovie.op(blockMovieFWD,prd_psinum,blockSize_avg,Labels[0]+'-H'+ str(b),OFvisualPrint)
                     if b==0:
                         FlowVecFWD = copy.deepcopy(FlowVecFblock)
                     else:
                         FlowVecFWD = stackDicts(FlowVecFWD,FlowVecFblock)
 
-                    # print 'Computing Optical Flow for Movie Reverse ...'
+                    #print('Computing Optical Flow for Movie Reverse ...')
                     # blockMovieFWD is used but due to label of 'REV', the negative vectors will be used after computing the FWD vectors
                     # If FWD vectors are provided, then reverse flow vectors are not going to be recomputed but will
                     # be obtained by reversing the FWD vectors (-Vx,-Vy)
@@ -193,7 +193,7 @@ def ComputeOptFlowPrDPsiAll1(input_data):
 
     #print ('currPrD',currPrD)
     #load movie and tau param first
-    moviePrDPsi,badPsis,tauPrDPsis,tauPsisIQR  = LoadPrDPsiMoviesMasked.op(currPrD)
+    moviePrDPsi, badPsis, tauPrDPsis, tauPsisIQR, tauPsisOcc  = LoadPrDPsiMoviesMasked.op(currPrD)
 
     #print 'curr PD',currPrD
     badPsis = np.array(badPsis)
@@ -216,11 +216,12 @@ def ComputeOptFlowPrDPsiAll1(input_data):
     badNodesPsisTau = np.copy(badPsis)
     #print ('tauPsisIQR',tauPsisIQR,np.shape(tauPsisIQR))
     NodesPsisTauIQR = tauPsisIQR
+    NodesPsisTauOcc = tauPsisOcc
     NodesPsisTauVals = tauPrDPsis
 
 
     time.sleep(2)
-    myio.fout1(badNodesPsisTaufile_pd,['badNodesPsisTau','NodesPsisTauIQR' ,'NodesPsisTauVals'], [badNodesPsisTau,NodesPsisTauIQR,NodesPsisTauVals])
+    myio.fout1(badNodesPsisTaufile_pd,['badNodesPsisTau','NodesPsisTauIQR' ,'NodesPsisTauOcc','NodesPsisTauVals'], [badNodesPsisTau,NodesPsisTauIQR,NodesPsisTauOcc, NodesPsisTauVals])
     time.sleep(2)
     #except:
     #    print('badNodes File: ',badNodesPsisTaufile,', does not exist.')
@@ -268,7 +269,7 @@ def op(nodeEdgeNumRange, *argv):
         #print('\nInitialize and write a file to record badPsis')
         offset_OF_files = len(nodeRange) - count1(nodeRange)
         #print('offset_OF_files',offset_OF_files)
-        if offset_OF_files==0: # offset_OF_files=0 when no OF files were generated
+        if offset_OF_files == 0: # offset_OF_files=0 when no OF files were generated
             badNodesPsisTaufile = '{}badNodesPsisTauFile'.format(p.CC_dir)
             if os.path.exists(badNodesPsisTaufile):
                 os.remove(badNodesPsisTaufile)
@@ -284,6 +285,7 @@ def op(nodeEdgeNumRange, *argv):
         NodesPsisTauIQR = np.zeros((G['nNodes'],p.num_psis))+5. # any positive real number > 1.0 outside tau range
         # tau range is [0,1.0], since a zero or small tau value by default means it will be automatically assigned
         # as a bad tau depending on the cut-off
+        NodesPsisTauOcc = np.zeros((G['nNodes'],p.num_psis))
         NodesPsisTauVals = [[None]]*G['nNodes']
 
         # the above variables are initialized at the start and also at resume of CC step
@@ -293,7 +295,7 @@ def op(nodeEdgeNumRange, *argv):
         # and not during resume of CC step
         if offset_OF_files==0:
             #print('badNodesPsisTaufile variables initialized...')
-            myio.fout1(badNodesPsisTaufile, ['badNodesPsisTau','NodesPsisTauIQR' ,'NodesPsisTauVals'], [badNodesPsisTau,NodesPsisTauIQR,NodesPsisTauVals])
+            myio.fout1(badNodesPsisTaufile, ['badNodesPsisTau','NodesPsisTauIQR','NodesPsisTauOcc' ,'NodesPsisTauVals'], [badNodesPsisTau,NodesPsisTauIQR,NodesPsisTauOcc, NodesPsisTauVals])
             #print('badNodesPsisTaufile initialized...')
             time.sleep(5)
 
@@ -348,6 +350,7 @@ def op(nodeEdgeNumRange, *argv):
                 badPsis = dataR['badNodesPsisTau'] # based on a specific tau-iqr cutoff in LoadPrDPsiMoviesMasked
                 # but we actually use the raw iqr values to get a histogram of all iqr across all PDs to get the better cutoff later.
                 tauPsisIQR = dataR['NodesPsisTauIQR']
+                tauPsisOcc = dataR['NodesPsisTauOcc']
                 tauPrDPsis = dataR['NodesPsisTauVals']
                 #print ('read badNodesPsisTau', badNodesPsisTau,len(badPsis))
                 #print ('read NodesPsisTauIQR',NodesPsisTauIQR[0:10,:])
@@ -355,10 +358,11 @@ def op(nodeEdgeNumRange, *argv):
                     badNodesPsisTau[currPrD,np.array(badPsis)] = -100
                 #print('tauPsisIQR',np.shape(tauPsisIQR))
                 NodesPsisTauIQR[currPrD,:] = tauPsisIQR
+                NodesPsisTauOcc[currPrD,:]= tauPsisOcc
                 NodesPsisTauVals[currPrD] = tauPrDPsis
 
             badNodesPsisTaufile = '{}badNodesPsisTauFile'.format(p.CC_dir)
-            myio.fout1(badNodesPsisTaufile, ['badNodesPsisTau','NodesPsisTauIQR' ,'NodesPsisTauVals'], [badNodesPsisTau,NodesPsisTauIQR,NodesPsisTauVals])
+            myio.fout1(badNodesPsisTaufile, ['badNodesPsisTau','NodesPsisTauIQR','NodesPsisTauOcc' ,'NodesPsisTauVals'], [badNodesPsisTau,NodesPsisTauIQR,NodesPsisTauOcc,NodesPsisTauVals])
 
             rem_temp_dir=0
             if rem_temp_dir:

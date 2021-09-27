@@ -263,8 +263,8 @@ def CalcPairwiseDistS2(X,*argv):
 
     # pairwise Euclidean distance
     Dsq = np.sum(U*U,axis=0).T + np.sum(V*V,axis=0) - 2*np.dot(U.T , V)
-    #Dsq[Dsq < 0] = 0
-    Dsq[Dsq < 1e-6] = 0
+    #Dsq[Dsq < 0.0] = 0.0
+    Dsq[Dsq < 1e-6] = 0.0
     pwDist = np.sqrt(Dsq)
     return (pwDotProd, pwDist)
 

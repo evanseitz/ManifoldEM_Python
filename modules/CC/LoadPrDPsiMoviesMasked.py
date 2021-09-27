@@ -15,6 +15,7 @@ import rotatefill
 
 '''		
 Copyright (c) Columbia University Suvrajit Maji 2020		
+Modified:Sept 17,2021
 '''
 
 _logger = logging.getLogger(__name__)
@@ -97,14 +98,12 @@ def getMask2D(prD,maskType,radius):
 
 def maskAvgMovie(M):
     # masked being applied to each frame of the movie M
-
     numFrames = M.shape[0]
     dim = int(np.sqrt(M.shape[1]))
-    M2 = np.resize(M, (numFrames,dim, dim))
-    Mavg = np.sum(M2,axis=0)
-    mask2D = cv2.adaptiveThreshold(Mavg,np.max(Mavg.flatten()),cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
-
-
+    print('\nnumFrames',numFrames, 'dim',dim)
+    M2 = np.resize(M, (numFrames, dim, dim))
+    Mavg = np.sum(M2, axis=0)
+    mask2D = cv2.adaptiveThreshold(Mavg, np.max(Mavg.flatten()), cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
     maskedM = M*mask2D.flatten('F') # broadcast to all frames
     # test for first frame
     #plt.imshow(maskedM[1,:].reshape((dim,dim)),cmap='gray')
@@ -112,31 +111,39 @@ def maskAvgMovie(M):
     return maskedM
 
 
-def findBadNodePsiTau0(tau):
-    sdTau = np.std(tau)
-    #print 'sdtau',sdTau
-    if sdTau < 0.08: # 0.08 seems like a reasonable number for tau cutoff
-        badPsi = 1
-    else:
-        badPsi = 0
-
-    return badPsi,sdTau
-
-def findBadNodePsiTau(tau):
+def findBadNodePsiTau(tau, tau_occ_thresh=0.33):
     quartile_1, quartile_3 = np.percentile(tau, [25, 75])
     iqr = quartile_3 - quartile_1
     #print 'iqr',iqr
 
-    if iqr < 0.02: # 0.013, #0.015 for iqr for rough tau cutoff
+    ## Sept 2021
+    # check if the tau value distribution have more than one narrow ranges far apart
+    # this will artifically make the IQR value high giving the illusion of a wide tau
+    # distribution. This cases need to be checked and set the IQR to a low value=0.01
+    taubins = 50
+    tau_h, bin_edges = np.histogram(tau, bins=taubins) # there are 50 states
+    tau_h = np.array(tau_h)
+    tau_nz = np.where(tau_h > 0.0)[0].size
+    tau_occ = tau_nz/float(taubins)
+    #print('\ntau h:', tau_h)
+    #print('\ntau bin_edges:', bin_edges)
+    #print('\ntau occ:', tau_nz, tau_occ)
+    # if number of states present in tau values is less than occ_thresh=30%?then there are lot of
+    # missing states,
+    #tau_occ_thresh = 0.35 # 35% conservative here? # could input through p.py / gui ?
+
+    if (iqr < 0.02) or (tau_occ <= tau_occ_thresh):
+        #print("Narrow tau distribution")
         badPsi = 1
     else:
         badPsi = 0
 
-    return badPsi,iqr
+    return badPsi, iqr, tau_occ
 
 def op(prD):
-    #print '\nprD',prD
-    p.findBadPsiTau = 1 # interface with gui, p.py
+    #print ('\nprD',prD)
+    p.findBadPsiTau = 1 # interface with GUI, p.py
+    p.tau_occ_thresh = 0.35 # interface with GUI, p.py
     '''
     useMask = 1 # default
     p.mask_vol_file = ''
@@ -165,19 +172,18 @@ def op(prD):
     psi2_file = p.psi2_file
     NumPsis = p.num_psis
     #print 'NumPsis',NumPsis
-    #useMask = p.useMask
-    #maskType = p.maskType
     moviePrDPsis = [None]*NumPsis
     tauPrDPsis = [None]*NumPsis
     badPsis = []
-    tauPsisIQR =[]
+    tauPsisIQR = []
+    tauPsisOcc = []
     k = 0
     if useMask:
         # create one mask for a prD
-        mask2D = getMask2D(prD,maskType,radius)
+        mask2D = getMask2D(prD, maskType, radius)
 
     for psinum in range(NumPsis):
-        imgPsiFileName = '{}prD_{}_psi_{}'.format(psi2_file,prD,psinum)
+        imgPsiFileName = '{}prD_{}_psi_{}'.format(psi2_file, prD, psinum)
         data_IMG = myio.fin1(imgPsiFileName)
         #IMG1 = data_IMG["IMG1"].T
 
@@ -186,12 +192,13 @@ def op(prD):
         #psirec = data_IMG['psirec']
         #psiC1 = data_IMG['psiC1']
         #print 'PrD:',prD,', Psi',psinum
+        #print('load IMG1.shape',IMG1.shape)
         Mpsi = -IMG1
 
         # checkflip
         if useMask:
             # masked being applied to each frame of the movie M
-            if maskType=='average2Dmovie':
+            if maskType == 'average2Dmovie':
                 Mpsi_masked = maskAvgMovie(Mpsi)
             else:
                 Mpsi_masked = Mpsi*(mask2D.flatten('F')) # broadcast to all frames
@@ -200,21 +207,20 @@ def op(prD):
 
         #Mpsi_masked = rotate_psi(prD,Mpsi_masked)
 
-        moviePrDPsis[psinum] =  Mpsi_masked
+        moviePrDPsis[psinum] = Mpsi_masked
         tauPrDPsis[psinum] = tau
 
         if p.findBadPsiTau:
-            #b = findBadNodePsiTau(Mpsi,tau), if using psi-movie to determine
-            #b = findBadNodePsi(tau,psirec)
-            b,tauIQR = findBadNodePsiTau(tau)
+            b, tauIQR, tauOcc = findBadNodePsiTau(tau, p.tau_occ_thresh)
             tauPsisIQR.append(tauIQR)
+            tauPsisOcc.append(tauOcc)
             if b:
-                #print 'bad psinum',psinum
+                #print('bad psinum',psinum)
                 badPsis.append(psinum)
                 k = k + 1
         else:
-            badPsis=[]
+            badPsis = []
 
-    #print 'prD',prD, 'badPsis',badPsis,tauvalPsis
-    return moviePrDPsis,badPsis,tauPrDPsis,tauPsisIQR
+    #print('prD',prD, 'badPsis', badPsis,tauvalPsis)
+    return moviePrDPsis, badPsis, tauPrDPsis, tauPsisIQR, tauPsisOcc
 

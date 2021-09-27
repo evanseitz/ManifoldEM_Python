@@ -108,10 +108,10 @@ def op(*argv):
     anchorlist = [a[0] for a in p.anch_list]
     anchorlist = [a - 1 for a in anchorlist] # we need labels with 0 index to compare with the node labels in G, Gsub
 
-    print('\nAnchor list:',anchorlist,', Number of anchor nodes:',len(anchorlist),'\n')
+    print('\nAnchor list:', anchorlist, ', Number of anchor nodes:',len(anchorlist),'\n')
 
     if any(a in anchorlist for a in G['Nodes']):
-        if len(anchorlist)+ numTrashPDs ==G['nNodes']:
+        if len(anchorlist) + numTrashPDs == G['nNodes']:
             print('\nAll nodes have been manually selected (as anchor nodes). ' \
                  'Conformational-coordinate propagation is not required. Exiting this program.\n')
 
@@ -194,8 +194,11 @@ def op(*argv):
 
     #nodeRange = nodelCsel
     #edgeNumRange = edgelCsel
-    nodeRange = [y for x in nodelCsel for y in x] #flatten list another way?
-    edgeNumRange = [y for x in edgelCsel for y in x] #flatten list another way?
+    #print('nodelCsel', nodelCsel)
+    #print('edgelCsel', edgelCsel)
+
+    nodeRange = np.sort([y for x in nodelCsel for y in x]) #flatten list another way?
+    edgeNumRange = np.sort([y for x in edgelCsel for y in x]) #flatten list another way?
 
     #nodeRange = range(G['nNodes'])
     #edgeNumRange = range(G['nEdges'])

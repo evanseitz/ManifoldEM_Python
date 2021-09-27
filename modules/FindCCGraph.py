@@ -268,8 +268,8 @@ def CalcPairwiseDistS2(X,*argv):
     Dsq = np.sum(U*U,axis=0).T + np.sum(V*V,axis=0) - 2*np.dot(U.T , V)
     # due to variable behaviour of python 2.7 libraries , the numpy matrix "*" and dot product above may produce
     # different output when dealing with "small numbers",e.g. '0' may be 1e-7/1e-8
-    #Dsq[Dsq < 0] = 0
-    Dsq[Dsq < 1e-6] = 0
+    #Dsq[Dsq < 0.0] = 0.0
+    Dsq[Dsq < 1e-6] = 0.0
     pwDist = np.sqrt(Dsq)
     return (pwDotProd, pwDist)
 
@@ -304,7 +304,7 @@ def op():
         epsilonBall = mindist * nG / numPDs
         epsilon = min(max(mindist + p.eps, epsilonBall),
                   mindist * 2 * np.sqrt(2) + p.eps) #mindist + eps <= epsilon <= mindist *2*sqrt(2) + eps
-        epsilon=epsilon*1.2 #constant multiplier; use for decreasing number of connected components
+        #epsilon=epsilon*1.2 #constant multiplier; use for decreasing number of connected components
         print("Neighborhood epsilon:",epsilon)
 
         # Updated graph info
