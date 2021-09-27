@@ -421,7 +421,7 @@ def op(Mov, prd_psinum, blockSize_avg, label, OFvisualPrint, *argv):
         inputFWD = 1
 
     if not inputFWD:
-        do_simpleAvg = 0 #1 ... 0 is TEMP
+        do_simpleAvg = 1 #1 ... 0 is TEMP
         do_movingAvg = 0
         do_filterImage = 0
         do_aniso_filt = 1 #1 ... 0 is TEMP
@@ -436,7 +436,7 @@ def op(Mov, prd_psinum, blockSize_avg, label, OFvisualPrint, *argv):
             print('Optical flow method:', OF_Type)
 
         if OF_Type == 'GF' or OF_Type == 'GF-HS':
-            do_filterImage = 0 #1 ... 0 is TEMP
+            do_filterImage = 1 #1 ... 0 is TEMP
             if OF_Type == 'GF-HS':
                 sig = 1.5
 
