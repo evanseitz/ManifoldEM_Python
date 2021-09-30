@@ -13,7 +13,7 @@ Copyright (c) Columbia University Evan Seitz 2020 (python version)
 '''
 
 
-def op(orig,new,PrD):
+def op(orig_zip,new_zip,PrD):
     print('Initiating re-embedding...')
     import p
     dist_file = '{}prD_{}'.format(p.dist_file, PrD)
@@ -24,9 +24,19 @@ def op(orig,new,PrD):
     data = myio.fin1(psi_file)
     posPath = data['posPath']
     ind = data['ind']
-
     D = D[posPath][:,posPath] # D now contains the orig distances
-    posPathInd = np.nonzero([x in orig for x in new])[0] # indexes of the new points
+    
+    #posPathInd = np.nonzero([x in orig for x in new])[0] # indexes of the new points; this is wrong for Python3 -- E.Seitz, 2021
+    
+    # Py3 update -- E.Seitz, 2021:
+    origX, origY = zip(*orig_zip) #unpack points
+    newX, newY = zip(*new_zip) #unpack points
+    orig = np.stack((origX, origY), axis=1)
+    new = np.stack((newX, newY), axis=1)
+    c = np.in1d(orig.view('i,i').reshape(-1), new.view('i,i').reshape(-1))
+    cR = np.reshape(c, (int(np.shape(c)[0]/2), 2))
+    posPathInd = np.where(cR[:,0])[0] #the ordered indices of 2D-coordinates contained in both lists
+    # ...end of Py3 update.     
         
     D1 = D[posPathInd][:,posPathInd] # distances of the new points only
     k = D1.shape[0]
