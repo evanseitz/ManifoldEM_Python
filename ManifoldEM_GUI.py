@@ -6295,9 +6295,15 @@ class Vid2Canvas(QtGui.QDialog):
 
 
 class Manifold2dCanvas(QtGui.QDialog):
+    # for eigenvector specific plots:
     eig_current = 1
     eig_compare1 = 2
     eig_compare2 = 3
+    # for changing views based on 3D embedding coordinates chosen:
+    eigChoice1 = 0 
+    eigChoice2 = 1
+    eigChoice3 = 2
+    
     coordsX = [] #user X coordinate picks
     coordsY = [] #user Y coordinate picks
     connected = 0 #binary: 0=unconnected, 1=connected
@@ -6328,8 +6334,8 @@ class Manifold2dCanvas(QtGui.QDialog):
 
         psi_file = '{}prD_{}'.format(p.psi_file, P4.user_PrD - 1) #current embedding
         data = myio.fin1(psi_file)
-        x = data['psi'][:,Manifold2dCanvas.eig_current-1]
-        y = data['psi'][:,Manifold2dCanvas.eig_compare1-1]
+        x = data['psi'][:,Manifold2dCanvas.eigChoice1]
+        y = data['psi'][:,Manifold2dCanvas.eigChoice2]
 
         Manifold2dCanvas.pts_orig = zip(x,y)
         Manifold2dCanvas.pts_origX = x
@@ -6343,18 +6349,18 @@ class Manifold2dCanvas(QtGui.QDialog):
         self.ax.get_xaxis().set_ticks([])
         self.ax.get_yaxis().set_ticks([])
         self.ax.set_title('Place points on the plot to encircle deviant cluster(s)', fontsize=3.5)
-        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_current), fontsize=6)
-        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_compare1), fontsize=6)
+        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice1+1), fontsize=6)
+        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice2+1), fontsize=6)
         self.ax.autoscale()
         self.canvas.mpl_connect('button_press_event', self.onclick)
         self.canvas.draw() #refresh canvas
 
         # canvas buttons:
-        self.btn_reset = QtGui.QPushButton('Reset Plot')
-        self.btn_reset.clicked.connect(self.reset)
-        self.btn_reset.setDisabled(False)
-        self.btn_reset.setDefault(False)
-        self.btn_reset.setAutoDefault(False)
+        Manifold2dCanvas.btn_reset = QtGui.QPushButton('Reset Plot')
+        Manifold2dCanvas.btn_reset.clicked.connect(self.reset)
+        Manifold2dCanvas.btn_reset.setDisabled(False)
+        Manifold2dCanvas.btn_reset.setDefault(False)
+        Manifold2dCanvas.btn_reset.setAutoDefault(False)
 
         self.btn_connect = QtGui.QPushButton('Connect Path')
         self.btn_connect.clicked.connect(self.connect)
@@ -6393,7 +6399,7 @@ class Manifold2dCanvas(QtGui.QDialog):
         layout.setSizeConstraint(QtGui.QLayout.SetMinimumSize)
         #layout.addWidget(self.toolbar, 0,0,1,5)
         layout.addWidget(self.canvas, 1,0,1,6)
-        layout.addWidget(self.btn_reset, 2,0,1,1)
+        layout.addWidget(Manifold2dCanvas.btn_reset, 2,0,1,1)
         layout.addWidget(self.btn_connect, 2,1,1,1)
         layout.addWidget(self.btn_view, 2,2,1,1)
         layout.addWidget(self.btn_remove, 2,3,1,1)
@@ -6440,8 +6446,8 @@ class Manifold2dCanvas(QtGui.QDialog):
         self.ax.get_xaxis().set_ticks([])
         self.ax.get_yaxis().set_ticks([])
         self.ax.set_title('Place points on the plot to encircle deviant cluster(s)', fontsize=3.5)
-        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_current), fontsize=6)
-        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_compare1), fontsize=6)
+        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice1+1), fontsize=6)
+        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice2+1), fontsize=6)
         self.ax.autoscale()
         self.canvas.draw()
 
@@ -6499,8 +6505,8 @@ class Manifold2dCanvas(QtGui.QDialog):
         self.ax.get_xaxis().set_ticks([])
         self.ax.get_yaxis().set_ticks([])
         self.ax.set_title('Place points on the plot to encircle deviant cluster(s)', fontsize=3.5)
-        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_current), fontsize=6)
-        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_compare1), fontsize=6)
+        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice1+1), fontsize=6)
+        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice2+1), fontsize=6)
         self.ax.autoscale()
         self.canvas.draw()
         #self.connected = 0 #if commented out, no more mouse clicks accepted (until 'reset')
@@ -6540,7 +6546,7 @@ class Manifold2dCanvas(QtGui.QDialog):
         box.setStandardButtons(QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
         reply = box.exec_()
         if reply == QtGui.QMessageBox.Yes:
-            self.btn_reset.setDisabled(True)
+            Manifold2dCanvas.btn_reset.setDisabled(True)
             self.btn_rebed.setDisabled(True)
             vid_tabs.setTabEnabled(0, False)
             vid_tabs.setTabEnabled(2, False)
@@ -6577,7 +6583,7 @@ class Manifold2dCanvas(QtGui.QDialog):
         box.setStandardButtons(QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
         reply = box.exec_()
         if reply == QtGui.QMessageBox.Yes:
-            self.btn_reset.setDisabled(False)
+            Manifold2dCanvas.btn_reset.setDisabled(False)
             self.btn_rebed.setDisabled(True)
             self.btn_revert.setDisabled(True)
 
@@ -6593,8 +6599,8 @@ class Manifold2dCanvas(QtGui.QDialog):
 
             psi_file = '{}prD_{}'.format(p.psi_file, P4.user_PrD - 1) #current embedding
             data = myio.fin1(psi_file)
-            x = data['psi'][:,Manifold2dCanvas.eig_current-1]
-            y = data['psi'][:,Manifold2dCanvas.eig_compare1-1]
+            x = data['psi'][:,Manifold2dCanvas.eigChoice1]
+            y = data['psi'][:,Manifold2dCanvas.eigChoice2]
 
             # redraw and resize figure:
             self.ax.clear()
@@ -6615,8 +6621,8 @@ class Manifold2dCanvas(QtGui.QDialog):
             self.ax.get_xaxis().set_ticks([])
             self.ax.get_yaxis().set_ticks([])
             self.ax.set_title('Place points on the plot to encircle deviant cluster(s)', fontsize=3.5)
-            self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_current), fontsize=6)
-            self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_compare1), fontsize=6)
+            self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice1+1), fontsize=6)
+            self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice2+1), fontsize=6)
             self.ax.autoscale()
             self.canvas.draw()
 
@@ -7044,9 +7050,9 @@ class Manifold3dCanvas(QtGui.QDialog):
         diff_fname = open(os.path.join(outDirDiff, 'gC_trimmed_psi_prD_%s' % (self.PrD-1)), 'rb')
         diff_data = pickle.load(diff_fname)
         self.psi = diff_data['psi'] #* self.eigVals #scale eigenvectors by corresponding eigenvalues
-        self.psi1 = self.psi[:, Manifold2dCanvas.eig_current-1]
-        self.psi2 = self.psi[:, Manifold2dCanvas.eig_compare1-1]
-        self.psi3 = self.psi[:, Manifold2dCanvas.eig_compare2-1]
+        self.psi1 = self.psi[:, Manifold2dCanvas.eigChoice1]
+        self.psi2 = self.psi[:, Manifold2dCanvas.eigChoice2]
+        self.psi3 = self.psi[:, Manifold2dCanvas.eigChoice3]
         diff_fname.close()
 
         # create canvas and plot data:
@@ -7075,9 +7081,9 @@ class Manifold3dCanvas(QtGui.QDialog):
         self.ax.yaxis.labelpad=-8
         self.ax.zaxis.labelpad=-8
 
-        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_current), fontsize=6)
-        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_compare1), fontsize=6)
-        self.ax.set_zlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_compare2), fontsize=6)
+        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice1+1), fontsize=6)
+        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice2+1), fontsize=6)
+        self.ax.set_zlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eigChoice3+1), fontsize=6)
 
         Manifold3dCanvas.canvas.draw() #refresh canvas
 
@@ -7096,17 +7102,21 @@ class Manifold3dCanvas(QtGui.QDialog):
 
         self.combo_X = QtGui.QComboBox(self)
         self.combo_X.setFont(font_standard)
-        #self.combo_X.currentIndexChanged.connect(self.choose_X)
-        self.combo_X.setDisabled(True)
+        self.combo_X.currentIndexChanged.connect(self.choose_X)
+        self.combo_X.setCurrentIndex(Manifold2dCanvas.eigChoice1)
+        print('AAA1:', Manifold2dCanvas.eigChoice1)
+        self.combo_X.setDisabled(False)
 
         self.combo_Y = QtGui.QComboBox(self)
         self.combo_Y.setFont(font_standard)
         self.combo_Y.currentIndexChanged.connect(self.choose_Y)
+        self.combo_Y.setCurrentIndex(Manifold2dCanvas.eigChoice2)
         self.combo_Y.setDisabled(False)
 
         self.combo_Z = QtGui.QComboBox(self)
         self.combo_Z.setFont(font_standard)
         self.combo_Z.currentIndexChanged.connect(self.choose_Z)
+        self.combo_Z.setCurrentIndex(Manifold2dCanvas.eigChoice3)
         self.combo_Z.setDisabled(False)
 
         for psi in range(p.num_psiTrunc):
@@ -7114,15 +7124,15 @@ class Manifold3dCanvas(QtGui.QDialog):
             self.combo_Y.addItem('Psi %s' % (int(psi+1)))
             self.combo_Z.addItem('Psi %s' % (int(psi+1)))
 
-        self.combo_X.setCurrentIndex(Manifold2dCanvas.eig_current-1)
-        self.combo_Y.setCurrentIndex(Manifold2dCanvas.eig_compare1-1)
-        self.combo_Z.setCurrentIndex(Manifold2dCanvas.eig_compare2-1)
-        self.combo_X.model().item(Manifold2dCanvas.eig_compare1-1).setEnabled(False)
-        self.combo_X.model().item(Manifold2dCanvas.eig_compare2-1).setEnabled(False)
-        self.combo_Y.model().item(Manifold2dCanvas.eig_current-1).setEnabled(False)
-        self.combo_Y.model().item(Manifold2dCanvas.eig_compare2-1).setEnabled(False)
-        self.combo_Z.model().item(Manifold2dCanvas.eig_current-1).setEnabled(False)
-        self.combo_Z.model().item(Manifold2dCanvas.eig_compare1-1).setEnabled(False)
+        self.combo_X.setCurrentIndex(Manifold2dCanvas.eigChoice1)
+        self.combo_Y.setCurrentIndex(Manifold2dCanvas.eigChoice2)
+        self.combo_Z.setCurrentIndex(Manifold2dCanvas.eigChoice3)
+        self.combo_X.model().item(Manifold2dCanvas.eigChoice2).setEnabled(False)
+        self.combo_X.model().item(Manifold2dCanvas.eigChoice3).setEnabled(False)
+        self.combo_Y.model().item(Manifold2dCanvas.eigChoice1).setEnabled(False)
+        self.combo_Y.model().item(Manifold2dCanvas.eigChoice3).setEnabled(False)
+        self.combo_Z.model().item(Manifold2dCanvas.eigChoice1).setEnabled(False)
+        self.combo_Z.model().item(Manifold2dCanvas.eigChoice2).setEnabled(False)
 
         self.initComplete = 1
 
@@ -7166,55 +7176,82 @@ class Manifold3dCanvas(QtGui.QDialog):
             Manifold3dCanvas.canvas.draw()
 
     def choose_X(self):
-        x = int(self.combo_X.currentIndex())
-        self.psi1 = self.psi[:,x]
-
         if self.initComplete == 1:
-
-            for i in range(p.num_psiTrunc):
-                self.combo_Y.model().item(i).setEnabled(True)
-                self.combo_Z.model().item(i).setEnabled(True)
-
-            self.combo_Y.model().item(int(self.combo_X.currentIndex())).setEnabled(False)
-            self.combo_Y.model().item(int(self.combo_Z.currentIndex())).setEnabled(False)
-            self.combo_Z.model().item(int(self.combo_X.currentIndex())).setEnabled(False)
-            self.combo_Z.model().item(int(self.combo_Y.currentIndex())).setEnabled(False)
-
-        self.replot()
+            x = int(self.combo_X.currentIndex())
+            self.psi1 = self.psi[:,x]
+            
+            # update choice on the 2D Embedding tab:
+            Manifold2dCanvas.eigChoice1 = x
+            psi_file = '{}prD_{}'.format(p.psi_file, P4.user_PrD - 1) #current embedding
+            data = myio.fin1(psi_file)
+            x = data['psi'][:,Manifold2dCanvas.eigChoice1]
+            y = data['psi'][:,Manifold2dCanvas.eigChoice2]
+            Manifold2dCanvas.pts_orig = zip(x,y)
+            Manifold2dCanvas.pts_origX = x
+            Manifold2dCanvas.pts_origY = y
+            Manifold2dCanvas.btn_reset.click()
+    
+            if self.initComplete == 1:
+    
+                for i in range(p.num_psiTrunc):
+                    self.combo_Y.model().item(i).setEnabled(True)
+                    self.combo_Z.model().item(i).setEnabled(True)
+    
+                self.combo_Y.model().item(int(self.combo_X.currentIndex())).setEnabled(False)
+                self.combo_Y.model().item(int(self.combo_Z.currentIndex())).setEnabled(False)
+                self.combo_Z.model().item(int(self.combo_X.currentIndex())).setEnabled(False)
+                self.combo_Z.model().item(int(self.combo_Y.currentIndex())).setEnabled(False)
+    
+            self.replot()
 
     def choose_Y(self):
-        y = int(self.combo_Y.currentIndex())
-        self.psi2 = self.psi[:,y]
-
         if self.initComplete == 1:
-
-            for i in range(p.num_psiTrunc):
-                self.combo_X.model().item(i).setEnabled(True)
-                self.combo_Z.model().item(i).setEnabled(True)
-
-            self.combo_X.model().item(int(self.combo_Y.currentIndex())).setEnabled(False)
-            self.combo_X.model().item(int(self.combo_Z.currentIndex())).setEnabled(False)
-            self.combo_Z.model().item(int(self.combo_X.currentIndex())).setEnabled(False)
-            self.combo_Z.model().item(int(self.combo_Y.currentIndex())).setEnabled(False)
-
-        self.replot()
+            y = int(self.combo_Y.currentIndex())
+            self.psi2 = self.psi[:,y]
+            
+            # update choice on the 2D Embedding tab:
+            Manifold2dCanvas.eigChoice2 = y
+            psi_file = '{}prD_{}'.format(p.psi_file, P4.user_PrD - 1) #current embedding
+            data = myio.fin1(psi_file)
+            x = data['psi'][:,Manifold2dCanvas.eigChoice1]
+            y = data['psi'][:,Manifold2dCanvas.eigChoice2]
+            Manifold2dCanvas.pts_orig = zip(x,y)
+            Manifold2dCanvas.pts_origX = x
+            Manifold2dCanvas.pts_origY = y
+            Manifold2dCanvas.btn_reset.click()
+    
+            if self.initComplete == 1:
+    
+                for i in range(p.num_psiTrunc):
+                    self.combo_X.model().item(i).setEnabled(True)
+                    self.combo_Z.model().item(i).setEnabled(True)
+    
+                self.combo_X.model().item(int(self.combo_Y.currentIndex())).setEnabled(False)
+                self.combo_X.model().item(int(self.combo_Z.currentIndex())).setEnabled(False)
+                self.combo_Z.model().item(int(self.combo_X.currentIndex())).setEnabled(False)
+                self.combo_Z.model().item(int(self.combo_Y.currentIndex())).setEnabled(False)
+    
+            self.replot()
 
     def choose_Z(self):
-        z = int(self.combo_Z.currentIndex())
-        self.psi3 = self.psi[:,z]
-
         if self.initComplete == 1:
-
-            for i in range(p.num_psiTrunc):
-                self.combo_X.model().item(i).setEnabled(True)
-                self.combo_Y.model().item(i).setEnabled(True)
-
-            self.combo_X.model().item(int(self.combo_Y.currentIndex())).setEnabled(False)
-            self.combo_X.model().item(int(self.combo_Z.currentIndex())).setEnabled(False)
-            self.combo_Y.model().item(int(self.combo_X.currentIndex())).setEnabled(False)
-            self.combo_Y.model().item(int(self.combo_Z.currentIndex())).setEnabled(False)
-
-        self.replot()
+            z = int(self.combo_Z.currentIndex())
+            self.psi3 = self.psi[:,z]
+            
+            Manifold2dCanvas.eigChoice3 = z
+    
+            if self.initComplete == 1:
+    
+                for i in range(p.num_psiTrunc):
+                    self.combo_X.model().item(i).setEnabled(True)
+                    self.combo_Y.model().item(i).setEnabled(True)
+    
+                self.combo_X.model().item(int(self.combo_Y.currentIndex())).setEnabled(False)
+                self.combo_X.model().item(int(self.combo_Z.currentIndex())).setEnabled(False)
+                self.combo_Y.model().item(int(self.combo_X.currentIndex())).setEnabled(False)
+                self.combo_Y.model().item(int(self.combo_Z.currentIndex())).setEnabled(False)
+    
+            self.replot()
 
 
 class PsiCanvas(QtGui.QDialog):
