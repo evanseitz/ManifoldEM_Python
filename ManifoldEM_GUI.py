@@ -7104,7 +7104,6 @@ class Manifold3dCanvas(QtGui.QDialog):
         self.combo_X.setFont(font_standard)
         self.combo_X.currentIndexChanged.connect(self.choose_X)
         self.combo_X.setCurrentIndex(Manifold2dCanvas.eigChoice1)
-        print('AAA1:', Manifold2dCanvas.eigChoice1)
         self.combo_X.setDisabled(False)
 
         self.combo_Y = QtGui.QComboBox(self)
