@@ -6486,29 +6486,29 @@ class Manifold2dCanvas(QtGui.QDialog):
             else:
                 sums += 1 #number of encircled points
 
-        delta = len(Manifold2dCanvas.pts_newX)
+        #delta = len(Manifold2dCanvas.pts_newX)
 
-        if delta >= p.PDsizeThL:
-            # crop out points, redraw and resize figure:
-            self.ax.clear()
-            self.ax.scatter(Manifold2dCanvas.pts_newX, Manifold2dCanvas.pts_newY, s=1, c='#1f77b4')
-            for tick in self.ax.xaxis.get_major_ticks():
-                tick.label.set_fontsize(4)
-            for tick in self.ax.yaxis.get_major_ticks():
-                tick.label.set_fontsize(4)
-            self.ax.get_xaxis().set_ticks([])
-            self.ax.get_yaxis().set_ticks([])
-            self.ax.set_title('Place points on the plot to encircle deviant cluster(s)', fontsize=3.5)
-            self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_current), fontsize=6)
-            self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_compare1), fontsize=6)
-            self.ax.autoscale()
-            self.canvas.draw()
-            #self.connected = 0 #if commented out, no more mouse clicks accepted (until 'reset')
-            self.btn_remove.setDisabled(True)
-            self.btn_view.setDisabled(True)
-            self.btn_rebed.setDisabled(False)
+        #if delta >= p.PDsizeThL:
+        # crop out points, redraw and resize figure:
+        self.ax.clear()
+        self.ax.scatter(Manifold2dCanvas.pts_newX, Manifold2dCanvas.pts_newY, s=1, c='#1f77b4')
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(4)
+        for tick in self.ax.yaxis.get_major_ticks():
+            tick.label.set_fontsize(4)
+        self.ax.get_xaxis().set_ticks([])
+        self.ax.get_yaxis().set_ticks([])
+        self.ax.set_title('Place points on the plot to encircle deviant cluster(s)', fontsize=3.5)
+        self.ax.set_xlabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_current), fontsize=6)
+        self.ax.set_ylabel(r'$\mathrm{\Psi}$%s' % (Manifold2dCanvas.eig_compare1), fontsize=6)
+        self.ax.autoscale()
+        self.canvas.draw()
+        #self.connected = 0 #if commented out, no more mouse clicks accepted (until 'reset')
+        self.btn_remove.setDisabled(True)
+        self.btn_view.setDisabled(True)
+        self.btn_rebed.setDisabled(False)
 
-        else:
+        '''else:
             Manifold2dCanvas.pts_new = []
             Manifold2dCanvas.pts_newX = []
             Manifold2dCanvas.pts_newY = []
@@ -6524,7 +6524,7 @@ class Manifold2dCanvas(QtGui.QDialog):
             box.setInformativeText(msg)
             box.setStandardButtons(QtGui.QMessageBox.Ok)
             box.setDefaultButton(QtGui.QMessageBox.Ok)
-            ret = box.exec_()
+            ret = box.exec_()'''
 
     def rebed(self):
         msg = 'Performing this action will recalculate the manifold \

@@ -31,8 +31,8 @@ if 1: #render with LaTeX font for figures
     rc('font', family='serif')
     
 # user parameters:
-projName = 'Apt5'
-PD = 7 #current PD (zero indexing)
+projName = 'untitled'
+PD = 1 #current PD (zero indexing)
 Batch = True #if True, batch print all PD embeddings to files in current directory
 
 # don't change:
@@ -101,12 +101,11 @@ if Batch is False: #standard use (view one PD embedding at a time)
 else: #batch print all PD embeddings to files in current directory
 
     # determine total number of PDs:
-    toposDir = os.path.join(parDir, 'outputs_%s/topos' % (projName))
     PDs = 0
-    for root, dirs, files in os.walk(toposDir):
+    for root, dirs, files in os.walk(dmDir):
         for file in sorted(files):
             if not file.startswith('.'): #ignore hidden files
-                if file.startswith('class_avg'):
+                if file.startswith('gC_trimmed_psi_prD'):
                     PDs += 1
     print('total PDs:', PDs)
 
