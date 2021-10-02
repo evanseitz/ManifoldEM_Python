@@ -402,7 +402,7 @@ class Mayavi_S2(HasTraits): # S2 Orientation Sphere, Electrostatic Potential Map
                     Item('display_thresh',springy=True,show_label=False,
                          tooltip='Display the occupancy of each PD.'),
                     Item('S2_scale',springy=True,show_label=True,
-                        tooltip='Change the relative scale of the S2 sphere with respect to the volume map above.'),
+                        tooltip='Change the relative scale of S2 with respect to the volume map above.'),
                     Item('S2_density',springy=True,show_label=True,
                          tooltip='Density of available points displayed on S2.'),
                     show_border=True,orientation='horizontal'),
@@ -9377,7 +9377,7 @@ class MainWindow(QtGui.QMainWindow):
                                 to proceed to the next tab.\
                                 <br /><br />\
                                 <b>Average Volume:</b>\
-                                the electrostatic potential map obtained from 3D classification.\
+                                the Coulomb potential map obtained from 3D classification.\
                                 <dl>\
                                     <dd>Accepted format: <i>.mrc</i></dd>\
                                     <dd> </dd>\
@@ -9425,7 +9425,7 @@ class MainWindow(QtGui.QMainWindow):
                                 directions.\
                                 <br /><br />\
                                 <b>Resolution:</b>\
-                                the resolvability in the electron density map of\
+                                the resolvability in the Coulomb potential map of\
                                 the particle obtained from Fourier Shell Correlation.\
                                 <br /><br />\
                                 <b>Aperture Index:</b>\
@@ -9467,11 +9467,11 @@ class MainWindow(QtGui.QMainWindow):
                                 <br /><br />\
                                 <b>S2 Orientation Distribution:</b>\
                                 the occupancy of projections as mapped\
-                                across the S2 sphere, with corresponding heatmap\
+                                across the S2 angular space, with corresponding heatmap\
                                 defining the relative spatial density of projections.\
                                 <br /><br />\
                                 <b>Electrostatic Potential Map:</b>\
-                                the volume obtained from 3D classification, with\
+                                the reconstructed volume obtained from 3D classification, with\
                                 contour depth modulated via the <i>Isosurface</i>\
                                 dropdown menu.\
                                 <br /><br />\
@@ -9503,7 +9503,7 @@ class MainWindow(QtGui.QMainWindow):
                                 at any time on subsequent\
                                 tabs, and represents the number of conformational coordinates incorporated\
                                 when generating the energy landscape. This feature is restricted to 1D\
-                                for the current release.\
+                                for the current (Beta) release.\
                                 <br /><br />\
                                 Once the distance calculations, embedding, spectral analysis, and 2D movies have\
                                 been computed via the <i>Distances</i>, <i>Embedding</i>,\
@@ -9526,20 +9526,21 @@ class MainWindow(QtGui.QMainWindow):
                                 from that particle's thresholded <i>S2 Orientation Distribution</i>.\
                                 Rotate the volume with the mouse (or via the arrows on the\
                                 <i>PD</i> box below) to view its corresponding characteristics\
-                                from each PD - including that PD's set of unique eigenvectors\
+                                from each PD, including that PD's set of unique eigenvectors\
                                 (Psi 1-8), <i>2D Class Average</i>, and <i>Eigenvalue Spectrum</i>.\
                                 <br /><br />\
                                 <b>PD Attributes:</b>\
                                 Within a single PD, the properties of each eigenfuction can be explored\
                                 by clicking the corresponding <i>View Psi</i> button underneath its image.\
-                                For each Psi, a new window will open with two\
-                                subtabs entitled <i>Movie Player</i> and <i>Manifold Analysis</i>.\
+                                For each eigenvector (Psi), a new window will open with a\
+                                subtab entitled <i>Movie Player</i>, along with other tabs for analysis of the embeddings.\
                                 If visual glitches are seen while viewing the image sequences\
                                 within the <i>Movie Player</i> tab, the\
-                                <i>Manifold Analysis</i> tool can be used to encircle the deviant clusters\
+                                <i>2D Embedding</i> tab can be used to encircle the deviant clusters\
                                 related to those behaviors and remove them (done via mouse clicks on the\
-                                canvas, followed by the <i>Remove Cluster</i> button). After a cluster\
-                                has been removed, the decision can be finalized via the\
+                                canvas, followed by the <i>Remove Cluster</i> button). The coordinates for the\
+                                <i>2D Embedding</i> plot will reflect those chosen on the <i>3D Embedding</i> tab.\
+                                After a cluster has been removed, the decision can be finalized via the\
                                 <i>Update Manifold</i> button, which re-embeds the manifold with these\
                                 new revisions in place.\
                                 Once re-embedding occurs, it is also possible to revert the manifold back to\
