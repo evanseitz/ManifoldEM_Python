@@ -109,12 +109,16 @@ anchorsMin = 1 #set minimum number of anchors needed for Belief Propagation
 p.resProj = 0
 p.PDsizeThL = 100
 p.PDsizeThH = 2000
-p.dim = 2
+if Beta:
+    p.dim = 1
+else:
+    p.dim = 2
 p.ncpu = 1
 p.num_psis = 8
 p.user_dir = pyDir
 p.proj_name = time_init
 p.temperature = 25
+# as a note, the word 'ZULU' is used throughout this document as a bookmark for pending items by E. Seitz.
 
 # =============================================================================
 # Command line arguments:
@@ -8063,9 +8067,22 @@ class ThreshAllCanvas(QtGui.QDialog):
             ThreshAllCanvas.entry_high.setDisabled(True)
 
     def confirmThresh(self):
-        p.PDsizeThL = ThreshAllCanvas.thresh_low
-        p.PDsizeThH = ThreshAllCanvas.thresh_high
-        self.DataStart()
+        if len(ThreshAllCanvas.in_PrDs) > 2:        
+            p.PDsizeThL = ThreshAllCanvas.thresh_low
+            p.PDsizeThH = ThreshAllCanvas.thresh_high
+            self.DataStart()
+        else:
+            msg = 'A minimum of 3 PDs are required.\
+                    <br /><br />\
+                    Please select new thresholds before updating.'
+            box = QtGui.QMessageBox(self)
+            box.setWindowTitle('%s Error' % progname)
+            box.setText('<b>Input Error</b>')
+            box.setFont(font_standard)
+            box.setIcon(QtGui.QMessageBox.Warning)
+            box.setInformativeText(msg)
+            box.setStandardButtons(QtGui.QMessageBox.Ok)        
+            ret = box.exec_()
 
     def DataStart(self):
         ThreshAllCanvas.btn_update.setDisabled(True)
@@ -8582,7 +8599,7 @@ class MainWindow(QtGui.QMainWindow):
                     fname = open(os.path.join(P1.user_directory,'outputs_{}/selecGCs'.format(p.proj_name)), 'rb')
                     data = pickle.load(fname)
                     # all tessellated bins:
-                    totalPrDs = np.int(np.shape(data['CG1'])[0])
+                    totalPrDs = int(np.shape(data['CG1'])[0])
                     mid = np.floor(np.shape(data['CG1'])[0]/2)
                     NC1 = data['NC'][:int(mid)]
                     NC2 = data['NC'][int(mid):]
@@ -9193,7 +9210,7 @@ class MainWindow(QtGui.QMainWindow):
                     mid = np.floor(np.shape(data['CG1'])[0]/2)
                     NC1 = data['NC'][:int(mid)]
                     NC2 = data['NC'][int(mid):]
-
+        
                     P1.all_PrDs = []
                     P1.all_occ = []
                     P1.thresh_PrDs = []
@@ -9226,7 +9243,7 @@ class MainWindow(QtGui.QMainWindow):
                                     P1.thresh_occ.append(i)
                                 pd += 1
                             pd_all += 1
-
+        
                     # ad hoc ratios to make sure S2 volume doesn't freeze-out due to too many particles to plot:
                     ratio1 = float(sum(P1.all_occ))/100
                     ratio2 = float(sum(P1.all_occ))/5000
@@ -9235,21 +9252,21 @@ class MainWindow(QtGui.QMainWindow):
                     P1.S2_density_all = list(filter(lambda a: a > int(ratio2), P1.S2_density_all))
                     P2.viz1.update_S2_density_all()
                     P2.viz1.update_S2_params()
-
+        
                     # draw/update plots on Distribution tab:
                     P2.viz1.update_scene2()
                     P2.viz1.update_scene1()
-
+        
                     # read points from tessellated sphere:
                     PrD_map1 = os.path.join(P1.user_directory,'outputs_{}/topos/Euler_PrD/PrD_map1.txt'.format(p.proj_name))
                     PrD_map1_eul = []
                     with open(PrD_map1) as values:
                         for column in zip(*[line for line in csv.reader(values, dialect="excel-tab")]):
                             PrD_map1_eul.append(column)
-
+        
                     P1.all_phi = PrD_map1_eul[2]
                     P1.all_theta = PrD_map1_eul[1]
-
+        
                     fname.close()
                     # =========================================================
         
