@@ -5544,6 +5544,10 @@ class PrD_Viz(QtGui.QMainWindow):
         '''
 
     def initUI(self):
+        Manifold2dCanvas.eigChoice1 = 0 
+        Manifold2dCanvas.eigChoice2 = 1
+        Manifold2dCanvas.eigChoice3 = 2
+        
         vid_tab1 = VidCanvas(self)
         vid_tab2 = Manifold2dCanvas(self)
         vid_tab3 = Manifold3dCanvas(self)
