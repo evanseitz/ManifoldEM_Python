@@ -101,8 +101,8 @@ Contact: evan.e.seitz@gmail.com
 progname = 'ManifoldEM'
 progversion = '0.2.0-beta'
 Beta = True #set to 'True' to disable 2D options; if disabled ('False') within this Beta, demo Ribosome energy landscape can be examined (only) using GUI
-#0.1.0: alpha (01.28.19)
-#0.2.0: beta (10.01.21) #ZULU update for release
+#0.1.0: alpha (2019)
+#0.2.0: beta (2021)
 font_header = QtGui.QFont('Arial', 13)
 font_standard = QtGui.QFont('Arial', 12)
 anchorsMin = 1 #set minimum number of anchors needed for Belief Propagation
