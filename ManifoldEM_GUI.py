@@ -103,6 +103,7 @@ progversion = '0.2.0-beta'
 Beta = True #set to 'True' to disable 2D options; if disabled ('False') within this Beta, demo Ribosome energy landscape can be examined (only) using GUI
 #0.1.0: alpha (2019)
 #0.2.0: beta (2021)
+Graphics = True #set to 'False' to disable 3D graphics, which may be helpful for ssh GUI use on remote workstations (to get past tab 2 and run on tab 3 only)
 font_header = QtGui.QFont('Arial', 13)
 font_standard = QtGui.QFont('Arial', 12)
 anchorsMin = 1 #set minimum number of anchors needed for Belief Propagation
@@ -162,267 +163,278 @@ Linux = sys.platform.lower().startswith(('linux','linux2'))
 # =============================================================================
 
 class Mayavi_S2(HasTraits): # S2 Orientation Sphere, Electrostatic Potential Map
-    scene1 = Instance(MlabSceneModel, ())
-    scene2 = Instance(MlabSceneModel, ())
-
-    S2_scale_all = List([.2,.4,.6,.8,1.0,1.2,1.4,1.6,1.8,2.0])
-    S2_scale = Enum(1.0, values='S2_scale_all')
-    display_angle = Button('Display Euler Angles')
-    phi = Str
-    theta = Str
-    display_thresh = Button('PD Thresholding')
-    isosurface_level = Range(2,9,3,mode='enum')
-    S2_rho = Int
-    S2_density_all = List([5,10,25,50,100,250,500,1000,10000,100000]) #needs to match P1.S2_density_all
-    S2_density = Enum(S2_rho, values='S2_density_all')
-
-    click_on = 0
-
-    def _phi_default(self):
-        return '%s%s' % (0, u"\u00b0")
-
-    def _theta_default(self):
-        return '%s%s' % (0, u"\u00b0")
-
-    def _S2_rho_default(self):
-        return 100
-
-    def update_S2_params(self):
-        self.isosurface_level = int(p.S2iso)
-        self.S2_scale = float(P1.S2rescale)
-        self.S2_rho = MainWindow.S2_rho
-        self.S2_density = int(self.S2_rho)
-
-    def update_S2_density_all(self):
-        self.S2_density_all = []
-        for i in P1.S2_density_all:
-            self.S2_density_all.append(int(i))
-
-    @on_trait_change('display_angle')
-    def view_anglesP2(self):
-        viewS2 = self.scene1.mlab.view(figure=Mayavi_S2.fig1)
-        azimuth = viewS2[0] #phi: 0-360
-        elevation = viewS2[1] #theta: 0-180
-        zoom = viewS2[2]
-        print_anglesP2(azimuth, elevation)
-
-    @on_trait_change('S2_scale, S2_density') #S2 Orientation Sphere
-    def update_scene1(self):
-        # store current camera info:
-        view = self.scene1.mlab.view()
-        roll = self.scene1.mlab.roll()
-
-        Mayavi_S2.fig1 = mlab.figure(1, bgcolor=(.5,.5,.5))
-        Mayavi_S2.fig2 = mlab.figure(2, bgcolor=(.5,.5,.5))
+    if Graphics is False:
+        def update_S2_density_all(self):
+            print('')
+        def update_S2_params(self):
+            print('')
+        def update_scene1(self):
+            print('')
+        def update_scene2(self):
+            print('')
         
-        mlab.clf(figure=Mayavi_S2.fig1)
-        
-        P1.x1,P1.y1,P1.z1 = P1.S2[0, ::self.S2_density], P1.S2[1, ::self.S2_density], P1.S2[2, ::self.S2_density]
-        values = np.array([P1.x1,P1.y1,P1.z1])
-        try:
-            kde = stats.gaussian_kde(values)
-            P1.d1 = kde(values) #density
-            P1.d1 /= P1.d1.max() #relative density, max=1
-
-            splot = mlab.points3d(P1.x1, P1.y1, P1.z1, P1.d1, scale_mode='none',
-                                  scale_factor=0.05, figure=Mayavi_S2.fig1)
-            cbar = mlab.scalarbar(title='Relative\nDensity\n', orientation='vertical', \
-                                  nb_labels=3, label_fmt='%.1f')
-        except:
-            splot = mlab.points3d(P1.x1, P1.y1, P1.z1, scale_mode='none',
-                                  scale_factor=0.05, figure=Mayavi_S2.fig1)
-
-        #####################
-        # align-to-grid data:
-        phi, theta = np.mgrid[0:np.pi:11j, 0:2*np.pi:11j]
-        x = np.sin(phi) * np.cos(theta)
-        y = np.sin(phi) * np.sin(theta)
-        z = np.cos(phi)
-        testPlot = mlab.mesh(x, y, z, representation='wireframe', color=(0, 0, 0))
-        testPlot.actor.actor.scale = np.array([50,50,50])
-        testPlot.actor.property.opacity = 0
-        #####################
-
-        splot.actor.actor.scale = np.multiply(self.S2_scale,
-                                    np.array([len(P1.df_vol)/float(np.sqrt(2)),
-                                              len(P1.df_vol)/float(np.sqrt(2)),
-                                              len(P1.df_vol)/float(np.sqrt(2))]))
-        
-        splot.actor.property.backface_culling = True
-        splot.mlab_source.reset
-
-        splot.module_manager.scalar_lut_manager.scalar_bar_widget.repositionable = False
-        splot.module_manager.scalar_lut_manager.scalar_bar_widget.resizable = False
-
-        # reposition camera to previous:
-        self.scene1.mlab.view(*view)
-        self.scene1.mlab.roll(roll)
-
-        def press_callback(vtk_obj, event): #left mouse down callback
-            self.click_on = 1
-
-        def hold_callback(vtk_obj, event): #camera rotate callback
-            if self.click_on > 0:
-                viewS2 = self.scene1.mlab.view(figure=Mayavi_S2.fig1)
-                self.phi = '%s%s' % (round(viewS2[0],2), u"\u00b0")
-                self.theta = '%s%s' % (round(viewS2[1],2), u"\u00b0")
-                #self.scene2.mlab.view(viewS2[0],viewS2[1],viewS2[2],viewS2[3],figure=Mayavi_S2.fig2)
-
-        def release_callback(vtk_obj, event): #left mouse release callback
-            if self.click_on == 1:
-                self.click_on = 0
-
-        Mayavi_S2.fig1.scene.scene.interactor.add_observer('LeftButtonPressEvent', press_callback)
-        Mayavi_S2.fig1.scene.scene.interactor.add_observer('InteractionEvent', hold_callback)
-        Mayavi_S2.fig1.scene.scene.interactor.add_observer('EndInteractionEvent', release_callback)
-        
-        # if display parameters have changed, store them to be grabbed by tab 4:
-        MainWindow.S2_scale = self.S2_scale
-        MainWindow.S2_iso = self.isosurface_level
-        p.S2iso = MainWindow.S2_iso
-        p.S2rescale = MainWindow.S2_scale #arcade
-        set_params.op(0) #send new GUI data to user parameters file
-        
-        
-    @on_trait_change('isosurface_level') #Electrostatic Potential Map
-    def update_scene2(self):
-        # store current camera info:
-        view = mlab.view()
-        roll = mlab.roll()
-        
-        Mayavi_S2.fig1 = mlab.figure(1, bgcolor=(.5,.5,.5))
-        Mayavi_S2.fig2 = mlab.figure(2, bgcolor=(.5,.5,.5))
-        
-        mlab.sync_camera(Mayavi_S2.fig1, Mayavi_S2.fig2)
-        mlab.sync_camera(Mayavi_S2.fig2, Mayavi_S2.fig1)
-        
-        mlab.clf(figure=Mayavi_S2.fig2)
-
-        if P1.relion_data == True:
-            mirror = P1.df_vol[..., ::-1]
-            cplot = mlab.contour3d(mirror,contours=self.isosurface_level,
-                                   color=(0.9, 0.9, 0.9),
-                                   figure=Mayavi_S2.fig2)
-            cplot.actor.actor.orientation = np.array([0., -90., 0.])
-
-        else:
-            cplot = mlab.contour3d(P1.df_vol,contours=self.isosurface_level,
-                                  color=(0.9, 0.9, 0.9), figure=Mayavi_S2.fig2)
-        
-        cplot.actor.actor.origin = np.array([len(P1.df_vol)/2,len(P1.df_vol)/2,len(P1.df_vol)/2])
-        cplot.actor.actor.position = np.array([-len(P1.df_vol)/2,-len(P1.df_vol)/2,-len(P1.df_vol)/2])
-
-        cplot.actor.property.backface_culling = True
-        cplot.compute_normals = False
-        cplot.mlab_source.reset
-
-        #####################
-        # align-to-grid data:
-        phi, theta = np.mgrid[0:np.pi:11j, 0:2*np.pi:11j]
-        x = np.sin(phi) * np.cos(theta)
-        y = np.sin(phi) * np.sin(theta)
-        z = np.cos(phi)
-        testPlot = mlab.mesh(x, y, z, representation='wireframe', color=(0, 0, 0))
-        testPlot.actor.actor.scale = np.array([50,50,50])
-        testPlot.actor.property.opacity = 0
-        ####################
-
-        # reposition camera to previous:
-        mlab.view(view[0],view[1],len(P1.df_vol)*2,view[3]) #zoom out based on MRC volume dimensions
-        mlab.roll(roll)
-
-        def press_callback(vtk_obj, event): #left mouse down callback
-            self.click_on = 1
-
-        def hold_callback(vtk_obj, event): #camera rotate callback
-            if self.click_on > 0:
-                viewS2 = self.scene2.mlab.view(figure=Mayavi_S2.fig2)
-                self.phi = '%s%s' % (round(viewS2[0],2), u"\u00b0")
-                self.theta = '%s%s' % (round(viewS2[1],2), u"\u00b0")
-                #self.scene1.mlab.view(viewS2[0],viewS2[1],viewS2[2],viewS2[3],figure=Mayavi_S2.fig1)
-
-        def release_callback(vtk_obj, event): #left mouse release callback
-            if self.click_on == 1:
-                self.click_on = 0
-
-        Mayavi_S2.fig2.scene.scene.interactor.add_observer('LeftButtonPressEvent', press_callback)
-        Mayavi_S2.fig2.scene.scene.interactor.add_observer('InteractionEvent', hold_callback)
-        Mayavi_S2.fig2.scene.scene.interactor.add_observer('EndInteractionEvent', release_callback)
-        
-        # if display parameters have changed, store them to be grabbed by tab 4:
-        MainWindow.S2_scale = self.S2_scale
-        MainWindow.S2_iso = self.isosurface_level
-        p.S2iso = MainWindow.S2_iso
-        p.S2rescale = MainWindow.S2_scale #arcade
-        set_params.op(0) #send new GUI data to user parameters file
-
-    titleLeft = Str
-    titleRight = Str
-
-    def _titleLeft_default(self):
-        return 'S2 Orientation Distribution'
-
-    def _titleRight_default(self):
-        return 'Electrostatic Potential Map'
-
-    @on_trait_change('display_thresh')
-    def GCsViewer(self):
-        global GCs_window
-        try:
-            GCs_window.close()
-        except:
-            pass
-        GCs_window = Thresh_Viz()
-        GCs_window.setMinimumSize(10, 10)
-        GCs_window.setWindowTitle('Projection Direction Thresholding')
-        GCs_window.show()
-
-
-    view = View(VGroup(
-            HGroup( #HSplit
-                  Group(
-                      Item('titleLeft',springy=False,show_label=False,style='readonly',
-                           style_sheet='*{font-size:12px; qproperty-alignment:AlignCenter}'),
-                      Item('scene1',
-                           editor=SceneEditor(scene_class=MayaviScene),
-                           height=1, width=1, show_label=False, springy=True,
-                           ),
-                        ),
-                  Group(
-                      Item('titleRight',springy=False,show_label=False,style='readonly',
-                           style_sheet='*{font-size:12px; qproperty-alignment:AlignCenter}'),
-                      Item('scene2',
-                           editor=SceneEditor(scene_class=MayaviScene),
-                           height=1, width=1, show_label=False, springy=True,
-                           ),
+    else: #typical mode
+        scene1 = Instance(MlabSceneModel, ())
+        scene2 = Instance(MlabSceneModel, ())
+    
+        S2_scale_all = List([.2,.4,.6,.8,1.0,1.2,1.4,1.6,1.8,2.0])
+        S2_scale = Enum(1.0, values='S2_scale_all')
+        display_angle = Button('Display Euler Angles')
+        phi = Str
+        theta = Str
+        display_thresh = Button('PD Thresholding')
+        isosurface_level = Range(2,9,3,mode='enum')
+        S2_rho = Int
+        S2_density_all = List([5,10,25,50,100,250,500,1000,10000,100000]) #needs to match P1.S2_density_all
+        S2_density = Enum(S2_rho, values='S2_density_all')
+    
+        click_on = 0
+    
+        def _phi_default(self):
+            return '%s%s' % (0, u"\u00b0")
+    
+        def _theta_default(self):
+            return '%s%s' % (0, u"\u00b0")
+    
+        def _S2_rho_default(self):
+            return 100
+    
+        def update_S2_params(self):
+            self.isosurface_level = int(p.S2iso)
+            self.S2_scale = float(P1.S2rescale)
+            self.S2_rho = MainWindow.S2_rho
+            self.S2_density = int(self.S2_rho)
+    
+        def update_S2_density_all(self):
+            self.S2_density_all = []
+            for i in P1.S2_density_all:
+                self.S2_density_all.append(int(i))
+    
+        @on_trait_change('display_angle')
+        def view_anglesP2(self):
+            viewS2 = self.scene1.mlab.view(figure=Mayavi_S2.fig1)
+            azimuth = viewS2[0] #phi: 0-360
+            elevation = viewS2[1] #theta: 0-180
+            zoom = viewS2[2]
+            print_anglesP2(azimuth, elevation)
+    
+        @on_trait_change('S2_scale, S2_density') #S2 Orientation Sphere
+        def update_scene1(self):
+            # store current camera info:
+            view = self.scene1.mlab.view()
+            roll = self.scene1.mlab.roll()
+    
+            Mayavi_S2.fig1 = mlab.figure(1, bgcolor=(.5,.5,.5))
+            Mayavi_S2.fig2 = mlab.figure(2, bgcolor=(.5,.5,.5))
+            
+            mlab.clf(figure=Mayavi_S2.fig1)
+            
+            P1.x1,P1.y1,P1.z1 = P1.S2[0, ::self.S2_density], P1.S2[1, ::self.S2_density], P1.S2[2, ::self.S2_density]
+            values = np.array([P1.x1,P1.y1,P1.z1])
+            try:
+                kde = stats.gaussian_kde(values)
+                P1.d1 = kde(values) #density
+                P1.d1 /= P1.d1.max() #relative density, max=1
+    
+                splot = mlab.points3d(P1.x1, P1.y1, P1.z1, P1.d1, scale_mode='none',
+                                      scale_factor=0.05, figure=Mayavi_S2.fig1)
+                cbar = mlab.scalarbar(title='Relative\nDensity\n', orientation='vertical', \
+                                      nb_labels=3, label_fmt='%.1f')
+            except:
+                splot = mlab.points3d(P1.x1, P1.y1, P1.z1, scale_mode='none',
+                                      scale_factor=0.05, figure=Mayavi_S2.fig1)
+    
+            #####################
+            # align-to-grid data:
+            phi, theta = np.mgrid[0:np.pi:11j, 0:2*np.pi:11j]
+            x = np.sin(phi) * np.cos(theta)
+            y = np.sin(phi) * np.sin(theta)
+            z = np.cos(phi)
+            testPlot = mlab.mesh(x, y, z, representation='wireframe', color=(0, 0, 0))
+            testPlot.actor.actor.scale = np.array([50,50,50])
+            testPlot.actor.property.opacity = 0
+            #####################
+    
+            splot.actor.actor.scale = np.multiply(self.S2_scale,
+                                        np.array([len(P1.df_vol)/float(np.sqrt(2)),
+                                                  len(P1.df_vol)/float(np.sqrt(2)),
+                                                  len(P1.df_vol)/float(np.sqrt(2))]))
+            
+            splot.actor.property.backface_culling = True
+            splot.mlab_source.reset
+    
+            splot.module_manager.scalar_lut_manager.scalar_bar_widget.repositionable = False
+            splot.module_manager.scalar_lut_manager.scalar_bar_widget.resizable = False
+    
+            # reposition camera to previous:
+            self.scene1.mlab.view(*view)
+            self.scene1.mlab.roll(roll)
+    
+            def press_callback(vtk_obj, event): #left mouse down callback
+                self.click_on = 1
+    
+            def hold_callback(vtk_obj, event): #camera rotate callback
+                if self.click_on > 0:
+                    viewS2 = self.scene1.mlab.view(figure=Mayavi_S2.fig1)
+                    self.phi = '%s%s' % (round(viewS2[0],2), u"\u00b0")
+                    self.theta = '%s%s' % (round(viewS2[1],2), u"\u00b0")
+                    #self.scene2.mlab.view(viewS2[0],viewS2[1],viewS2[2],viewS2[3],figure=Mayavi_S2.fig2)
+    
+            def release_callback(vtk_obj, event): #left mouse release callback
+                if self.click_on == 1:
+                    self.click_on = 0
+    
+            Mayavi_S2.fig1.scene.scene.interactor.add_observer('LeftButtonPressEvent', press_callback)
+            Mayavi_S2.fig1.scene.scene.interactor.add_observer('InteractionEvent', hold_callback)
+            Mayavi_S2.fig1.scene.scene.interactor.add_observer('EndInteractionEvent', release_callback)
+            
+            # if display parameters have changed, store them to be grabbed by tab 4:
+            MainWindow.S2_scale = self.S2_scale
+            MainWindow.S2_iso = self.isosurface_level
+            p.S2iso = MainWindow.S2_iso
+            p.S2rescale = MainWindow.S2_scale #arcade
+            set_params.op(0) #send new GUI data to user parameters file
+            
+            
+        @on_trait_change('isosurface_level') #Electrostatic Potential Map
+        def update_scene2(self):
+            # store current camera info:
+            view = mlab.view()
+            roll = mlab.roll()
+            
+            Mayavi_S2.fig1 = mlab.figure(1, bgcolor=(.5,.5,.5))
+            Mayavi_S2.fig2 = mlab.figure(2, bgcolor=(.5,.5,.5))
+            
+            mlab.sync_camera(Mayavi_S2.fig1, Mayavi_S2.fig2)
+            mlab.sync_camera(Mayavi_S2.fig2, Mayavi_S2.fig1)
+            
+            mlab.clf(figure=Mayavi_S2.fig2)
+    
+            if P1.relion_data == True:
+                mirror = P1.df_vol[..., ::-1]
+                cplot = mlab.contour3d(mirror,contours=self.isosurface_level,
+                                       color=(0.9, 0.9, 0.9),
+                                       figure=Mayavi_S2.fig2)
+                cplot.actor.actor.orientation = np.array([0., -90., 0.])
+    
+            else:
+                cplot = mlab.contour3d(P1.df_vol,contours=self.isosurface_level,
+                                      color=(0.9, 0.9, 0.9), figure=Mayavi_S2.fig2)
+            
+            cplot.actor.actor.origin = np.array([len(P1.df_vol)/2,len(P1.df_vol)/2,len(P1.df_vol)/2])
+            cplot.actor.actor.position = np.array([-len(P1.df_vol)/2,-len(P1.df_vol)/2,-len(P1.df_vol)/2])
+    
+            cplot.actor.property.backface_culling = True
+            cplot.compute_normals = False
+            cplot.mlab_source.reset
+    
+            #####################
+            # align-to-grid data:
+            phi, theta = np.mgrid[0:np.pi:11j, 0:2*np.pi:11j]
+            x = np.sin(phi) * np.cos(theta)
+            y = np.sin(phi) * np.sin(theta)
+            z = np.cos(phi)
+            testPlot = mlab.mesh(x, y, z, representation='wireframe', color=(0, 0, 0))
+            testPlot.actor.actor.scale = np.array([50,50,50])
+            testPlot.actor.property.opacity = 0
+            ####################
+    
+            # reposition camera to previous:
+            mlab.view(view[0],view[1],len(P1.df_vol)*2,view[3]) #zoom out based on MRC volume dimensions
+            mlab.roll(roll)
+    
+            def press_callback(vtk_obj, event): #left mouse down callback
+                self.click_on = 1
+    
+            def hold_callback(vtk_obj, event): #camera rotate callback
+                if self.click_on > 0:
+                    viewS2 = self.scene2.mlab.view(figure=Mayavi_S2.fig2)
+                    self.phi = '%s%s' % (round(viewS2[0],2), u"\u00b0")
+                    self.theta = '%s%s' % (round(viewS2[1],2), u"\u00b0")
+                    #self.scene1.mlab.view(viewS2[0],viewS2[1],viewS2[2],viewS2[3],figure=Mayavi_S2.fig1)
+    
+            def release_callback(vtk_obj, event): #left mouse release callback
+                if self.click_on == 1:
+                    self.click_on = 0
+    
+            Mayavi_S2.fig2.scene.scene.interactor.add_observer('LeftButtonPressEvent', press_callback)
+            Mayavi_S2.fig2.scene.scene.interactor.add_observer('InteractionEvent', hold_callback)
+            Mayavi_S2.fig2.scene.scene.interactor.add_observer('EndInteractionEvent', release_callback)
+            
+            # if display parameters have changed, store them to be grabbed by tab 4:
+            MainWindow.S2_scale = self.S2_scale
+            MainWindow.S2_iso = self.isosurface_level
+            p.S2iso = MainWindow.S2_iso
+            p.S2rescale = MainWindow.S2_scale #arcade
+            set_params.op(0) #send new GUI data to user parameters file
+    
+        titleLeft = Str
+        titleRight = Str
+    
+        def _titleLeft_default(self):
+            return 'S2 Orientation Distribution'
+    
+        def _titleRight_default(self):
+            return 'Electrostatic Potential Map'
+    
+        @on_trait_change('display_thresh')
+        def GCsViewer(self):
+            global GCs_window
+            try:
+                GCs_window.close()
+            except:
+                pass
+            GCs_window = Thresh_Viz()
+            GCs_window.setMinimumSize(10, 10)
+            GCs_window.setWindowTitle('Projection Direction Thresholding')
+            GCs_window.show()
+    
+    
+        view = View(VGroup(
+                HGroup( #HSplit
+                      Group(
+                          Item('titleLeft',springy=False,show_label=False,style='readonly',
+                               style_sheet='*{font-size:12px; qproperty-alignment:AlignCenter}'),
+                          Item('scene1',
+                               editor=SceneEditor(scene_class=MayaviScene),
+                               height=1, width=1, show_label=False, springy=True,
+                               ),
+                            ),
+                      Group(
+                          Item('titleRight',springy=False,show_label=False,style='readonly',
+                               style_sheet='*{font-size:12px; qproperty-alignment:AlignCenter}'),
+                          Item('scene2',
+                               editor=SceneEditor(scene_class=MayaviScene),
+                               height=1, width=1, show_label=False, springy=True,
+                               ),
+                          ),
                       ),
-                  ),
-            HGroup(
                 HGroup(
-                    Item('display_thresh',springy=True,show_label=False,
-                         tooltip='Display the occupancy of each PD.'),
-                    Item('S2_scale',springy=True,show_label=True,
-                        tooltip='Change the relative scale of S2 with respect to the volume map above.'),
-                    Item('S2_density',springy=True,show_label=True,
-                         tooltip='Density of available points displayed on S2.'),
-                    show_border=True,orientation='horizontal'),
-                HGroup(
-                    Item('phi',springy=True,show_label=True,#style='readonly',
-                         editor=TextEditor(evaluate=float),
-                         enabled_when='phi == float(0)', #i.e., never
-                         ),
-                    #Item('_'),
-                    Item('theta',springy=True,show_label=True,#style='readonly',
-                         editor=TextEditor(evaluate=float),
-                         enabled_when='phi == float(0)', #i.e., never
-                         ),
-                    Item('isosurface_level',springy=True,show_label=True,
-                         tooltip='Change the isosurface level of the volume map above.'),
-                    show_border=True,orientation='horizontal'),
-                ),
-                ),
-                resizable=True,
-                )
+                    HGroup(
+                        Item('display_thresh',springy=True,show_label=False,
+                             tooltip='Display the occupancy of each PD.'),
+                        Item('S2_scale',springy=True,show_label=True,
+                            tooltip='Change the relative scale of S2 with respect to the volume map above.'),
+                        Item('S2_density',springy=True,show_label=True,
+                             tooltip='Density of available points displayed on S2.'),
+                        show_border=True,orientation='horizontal'),
+                    HGroup(
+                        Item('phi',springy=True,show_label=True,#style='readonly',
+                             editor=TextEditor(evaluate=float),
+                             enabled_when='phi == float(0)', #i.e., never
+                             ),
+                        #Item('_'),
+                        Item('theta',springy=True,show_label=True,#style='readonly',
+                             editor=TextEditor(evaluate=float),
+                             enabled_when='phi == float(0)', #i.e., never
+                             ),
+                        Item('isosurface_level',springy=True,show_label=True,
+                             tooltip='Change the isosurface level of the volume map above.'),
+                        show_border=True,orientation='horizontal'),
+                    ),
+                    ),
+                    resizable=True,
+                    )
 
 ################################################################################
 # mayaVI viz 2 (Conformational Coordinates):
@@ -1319,6 +1331,11 @@ class P2(QtGui.QWidget):
         self.label_Hline.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
         layout.addWidget(self.label_Hline, 2, 4, 1, 2, QtCore.Qt.AlignVCenter)
         self.label_Hline.show()
+        
+        if Graphics is False:
+            self.button_threshPD = QtGui.QPushButton('PD Thresholding')
+            layout.addWidget(self.button_threshPD, 1, 2, 1, 2)
+            self.button_threshPD.show() #FELIX
         
         self.button_binPart = QtGui.QPushButton('Bin Particles')
         self.button_binPart.setToolTip('Proceed to embedding.')
@@ -6682,13 +6699,17 @@ class Manifold2dCanvas(QtGui.QDialog):
 
         idx_encircled = []
         index = 0
+        index_enc = 0
         for i in inside:
             index += 1
             if i == True:
+                index_enc += 1
                 Manifold2dCanvas.pts_encircledX.append(Manifold2dCanvas.pts_origX[index-1])
                 Manifold2dCanvas.pts_encircledY.append(Manifold2dCanvas.pts_origY[index-1])
                 Manifold2dCanvas.pts_encircled = zip(Manifold2dCanvas.pts_encircledX, Manifold2dCanvas.pts_encircledY)
                 idx_encircled.append(index-1)
+                
+        print('Encircled Points:',index_enc)
 
         Manifold2dCanvas.imgAvg = clusterAvg.op(idx_encircled, P4.user_PrD - 1)
         self.ClusterAvg()
@@ -8323,7 +8344,23 @@ class MainWindow(QtGui.QMainWindow):
         # =====================================================================
 
         tab1.button_toP2.clicked.connect(self.gotoP2)
-        tab2.button_binPart.clicked.connect(self.gotoP3)        
+        tab2.button_binPart.clicked.connect(self.gotoP3)   
+        
+        if Graphics is False: #non-standard mode
+            def GCsViewer(self):
+                global GCs_window
+                try:
+                    GCs_window.close()
+                except:
+                    pass
+                GCs_window = Thresh_Viz()
+                GCs_window.setMinimumSize(10, 10)
+                GCs_window.setWindowTitle('Projection Direction Thresholding')
+                GCs_window.show()
+                
+            tab2.button_threshPD.clicked.connect(GCsViewer)
+
+        
         self.show()
 
         # File Menu:
