@@ -103,7 +103,7 @@ progversion = '0.2.0-beta'
 Beta = True #set to 'True' to disable 2D options; if disabled ('False') within this Beta, demo Ribosome energy landscape can be examined (only) using GUI
 #0.1.0: alpha (2019)
 #0.2.0: beta (2021)
-Graphics = True #set to 'False' to disable 3D graphics, which may be helpful for ssh GUI use on remote workstations (to get past tab 2 and run on tab 3 only)
+Graphics = True #set to 'False' to disable 3D graphics, which may be helpful for ssh GUI use on remote workstations
 if Graphics is False:
     print('Mode set: 3D graphics disabled.')
 font_header = QtGui.QFont('Arial', 13)
@@ -442,274 +442,287 @@ class Mayavi_S2(HasTraits): # S2 Orientation Sphere, Electrostatic Potential Map
 # mayaVI viz 2 (Conformational Coordinates):
     
 class Mayavi_Rho(HasTraits): #electrostatic potential map, P4
-    scene3 = Instance(MlabSceneModel, ())
-    PrD_high = 2
-    isosurface = Range(2,9,3, mode='enum')
-    volume_alpha = Enum(1.0,.8,.6,.4,.2,0.0)
-    S2_scale = Float
-    anchorsUpdate = []
-    trashUpdate = []
-    phi = Str
-    theta = Str
-    click_on = 0
-    click_on_Eul = 0
-
-    def _phi_default(self):
-        return '%s%s' % (0, u"\u00b0")
-
-    def _theta_default(self):
-        return '%s%s' % (0, u"\u00b0")
-    
-    def _S2_scale_default(self):
-        return float(1)
-    
-    def update_S2(self):
-        self.S2_scale = float(MainWindow.S2_scale)
-        self.isosurface = int(MainWindow.S2_iso)
-
-    def view_anglesP4(self, dialog):
-        viewRho = self.scene3.mlab.view(figure=Mayavi_Rho.fig3)
-        azimuth = viewRho[0] #phi: 0-360
-        elevation = viewRho[1] #theta: 0-180
-        zoom = viewRho[2]
-        if dialog is True:
-            print_anglesP4(azimuth, elevation)
-        else:
-            return zoom
-            
-    def update_viewP4(self, azimuth, elevation, distance):        
-        self.scene3.mlab.view(azimuth=azimuth,
-                              elevation=elevation,
-                              distance=distance,
-                              reset_roll=False,
-                              figure=Mayavi_Rho.fig3)
-
-    def update_euler(self):
-        self.phi = '%s%s' % (round(float(P3.phi[(P4.user_PrD)-1]), 2), u"\u00b0")
-        self.theta = '%s%s' % (round(float(P3.theta[(P4.user_PrD)-1]), 2), u"\u00b0")
-                              
-    @on_trait_change('S2_scale,volume_alpha,isosurface')
-    def update_scene3(self):        
-        # store current camera info:
-        view = self.scene3.mlab.view()
-        roll = self.scene3.mlab.roll()
-      
-        Mayavi_Rho.fig3 = mlab.figure(3)
-        self.scene3.background = (0.0, 0.0, 0.0)
-
-        if P3.dictGen == False: #if P3 dictionaries not yet created (happens once on P3)
-            mlab.clf(figure=Mayavi_Rho.fig3)
-            
-            # =================================================================
-            # Volume (contour):
-            # =================================================================
-            mirror = P1.df_vol[..., ::-1]
-            cplot = mlab.contour3d(mirror,contours=self.isosurface,
-                                   color=(0.5, 0.5, 0.5),
-                                   figure=Mayavi_Rho.fig3)
-            cplot.actor.actor.orientation = np.array([0., -90., 0.]) #ZULU?
-
-            cplot.actor.actor.origin = np.array([len(P1.df_vol)/2,len(P1.df_vol)/2,len(P1.df_vol)/2])
-            cplot.actor.actor.position = np.array([-len(P1.df_vol)/2,-len(P1.df_vol)/2,-len(P1.df_vol)/2])
-
-            cplot.actor.property.backface_culling = True
-            cplot.compute_normals = False
-            cplot.actor.property.opacity = self.volume_alpha
-
-            # =================================================================
-            # Align-to-grid data:
-            # =================================================================
-            phi, theta = np.mgrid[0:np.pi:11j, 0:2*np.pi:11j]
-            x = np.sin(phi) * np.cos(theta)
-            y = np.sin(phi) * np.sin(theta)
-            z = np.cos(phi)
-            testPlot = mlab.mesh(x, y, z, representation='wireframe', color=(1, 1, 1))
-            testPlot.actor.actor.scale = np.multiply(self.S2_scale,
-                                                np.array([len(P1.df_vol)/float(np.sqrt(2)),
-                                                          len(P1.df_vol)/float(np.sqrt(2)),
-                                                          len(P1.df_vol)/float(np.sqrt(2))]))
-            testPlot.actor.property.opacity = 0
-
-            # =================================================================
-            # S2 Distribution (scatter):
-            # =================================================================
-            splot = mlab.points3d(P1.x2,P1.y2,P1.z2,P3.col, scale_mode='none',
-                                  scale_factor=0.05, figure=Mayavi_Rho.fig3)
-            splot.actor.property.backface_culling = True
-
-            splot.actor.actor.scale = np.multiply(self.S2_scale,
-                                        np.array([len(P1.df_vol)/float(np.sqrt(2)),
-                                                  len(P1.df_vol)/float(np.sqrt(2)),
-                                                  len(P1.df_vol)/float(np.sqrt(2))]))
-            splot.actor.actor.origin = np.array([0,0,0])
-            splot.actor.actor.position = np.array([0,0,0])
-
-            # =================================================================
-            # S2 Anchors (sparse scatter):
-            # =================================================================
-            aplot = mlab.points3d(P1.x3,P1.y3,P1.z3, scale_mode='none',
-                                  scale_factor=0.06, figure=Mayavi_Rho.fig3)
-
-            aplot.actor.property.backface_culling = True
-            aplot.glyph.color_mode = 'no_coloring'
-            aplot.actor.property.color = (1.0, 1.0, 1.0)
-            aplot.actor.actor.scale = np.multiply(self.S2_scale,
-                                        np.array([len(P1.df_vol)/float(np.sqrt(2)),
-                                                  len(P1.df_vol)/float(np.sqrt(2)),
-                                                  len(P1.df_vol)/float(np.sqrt(2))]))
-            aplot.actor.actor.origin = np.array([0,0,0])
-            aplot.actor.actor.position = np.array([0,0,0])
-
-            self.anchorsUpdate = aplot.mlab_source
-
-            # =================================================================
-            # S2 Trash (sparse scatter):
-            # =================================================================
-            tplot = mlab.points3d(P1.x4,P1.y4,P1.z4, scale_mode='none',
-                                  scale_factor=0.06, figure=Mayavi_Rho.fig3)
-
-            tplot.actor.property.backface_culling = True
-            tplot.glyph.color_mode = 'no_coloring'
-            tplot.actor.property.color = (0.0, 0.0, 0.0)
-            tplot.actor.actor.scale = np.multiply(self.S2_scale,
-                                        np.array([len(P1.df_vol)/float(np.sqrt(2)),
-                                                  len(P1.df_vol)/float(np.sqrt(2)),
-                                                  len(P1.df_vol)/float(np.sqrt(2))]))
-            tplot.actor.actor.origin = np.array([0,0,0])
-            tplot.actor.actor.position = np.array([0,0,0])
-
-            self.trashUpdate = tplot.mlab_source
-
-        else: #only update anchors
-            self.anchorsUpdate.reset(x=P1.x3, y=P1.y3, z=P1.z3)
-            self.trashUpdate.reset(x=P1.x4, y=P1.y4, z=P1.z4)
-
-        # =====================================================================
-        # reposition camera to previous:
-        # =====================================================================
-        mlab.view(*view)
-        mlab.roll(roll)
+    if Graphics is False:
+        def update_scene3(self):
+            print('')
+        def update_viewP4(self, azimuth, elevation, distance):
+            print('')
+        def view_anglesP4(self, dialog):
+            print('')
+        def update_S2(self):
+            print('')
+        def update_euler(self):
+            print('')
         
-        def press_callback(vtk_obj, event): #left mouse down callback
-            self.click_on = 1
-
-        def release_callback(vtk_obj, event): #left mouse release callback
-            if self.click_on == 1:
-                self.click_on = 0
-                # =============================================================
-                # magnetize to nearest PrD:
-                # =============================================================
-                # CONVENTIONS:
-                # =============================================================
-                # mayavi angle 0 -> [-180, 180]: azimuth, phi, longitude
-                # mayavi angle 1 -> [0, 180]: elevation/inclination, theta, latitude
-                # =============================================================
-                angles = self.scene3.mlab.view(figure=Mayavi_Rho.fig3)
-                phi0 = angles[0]*np.pi/180
-                theta0 = angles[1]*np.pi/180
-
-                r0 = 1
-                x0 = (r0*np.sin(theta0)*np.cos(phi0))
-                y0 = (r0*np.sin(theta0)*np.sin(phi0))
-                z0 = (r0*np.cos(theta0))
+    else: #standard mode
+        scene3 = Instance(MlabSceneModel, ())
+        PrD_high = 2
+        isosurface = Range(2,9,3, mode='enum')
+        volume_alpha = Enum(1.0,.8,.6,.4,.2,0.0)
+        S2_scale = Float
+        anchorsUpdate = []
+        trashUpdate = []
+        phi = Str
+        theta = Str
+        click_on = 0
+        click_on_Eul = 0
+    
+        def _phi_default(self):
+            return '%s%s' % (0, u"\u00b0")
+    
+        def _theta_default(self):
+            return '%s%s' % (0, u"\u00b0")
+        
+        def _S2_scale_default(self):
+            return float(1)
+        
+        def update_S2(self):
+            self.S2_scale = float(MainWindow.S2_scale)
+            self.isosurface = int(MainWindow.S2_iso)
+    
+        def view_anglesP4(self, dialog):
+            viewRho = self.scene3.mlab.view(figure=Mayavi_Rho.fig3)
+            azimuth = viewRho[0] #phi: 0-360
+            elevation = viewRho[1] #theta: 0-180
+            zoom = viewRho[2]
+            if dialog is True:
+                print_anglesP4(azimuth, elevation)
+            else:
+                return zoom
                 
-                # read points from tesselated sphere:
-                fname = os.path.join(P1.user_directory,'outputs_{}/topos/Euler_PrD/PrD_map.txt'.format(p.proj_name))
-                data = []
-                with open(fname) as values:
-                    for column in zip(*[line for line in csv.reader(values, dialect="excel-tab")]):
-                        data.append(column)
-
-                prds = data[0]
-                thetas = data[1]
-                phis = data[2]
-                psis = data[3]
-                xs = data[4]
-                ys = data[5]
-                zs = data[6]
-
-                xyz = np.column_stack((xs,ys,zs))
-                angs = np.column_stack((thetas,phis))
-                dists = [] #distances between current and all tesselated points
-                indexes = []
-                idx = 0
-                # find nearest neighbor (pythagorean):
-                for i,j,k in xyz:
-                    x1 = float(i)
-                    y1 = float(j)
-                    z1 = float(k)
+        def update_viewP4(self, azimuth, elevation, distance):        
+            self.scene3.mlab.view(azimuth=azimuth,
+                                  elevation=elevation,
+                                  distance=distance,
+                                  reset_roll=False,
+                                  figure=Mayavi_Rho.fig3)
+    
+        def update_euler(self):
+            self.phi = '%s%s' % (round(float(P3.phi[(P4.user_PrD)-1]), 2), u"\u00b0")
+            self.theta = '%s%s' % (round(float(P3.theta[(P4.user_PrD)-1]), 2), u"\u00b0")
+                                  
+        @on_trait_change('S2_scale,volume_alpha,isosurface')
+        def update_scene3(self):        
+            # store current camera info:
+            view = self.scene3.mlab.view()
+            roll = self.scene3.mlab.roll()
+          
+            Mayavi_Rho.fig3 = mlab.figure(3)
+            self.scene3.background = (0.0, 0.0, 0.0)
+    
+            if P3.dictGen == False: #if P3 dictionaries not yet created (happens once on P3)
+                mlab.clf(figure=Mayavi_Rho.fig3)
+                
+                # =================================================================
+                # Volume (contour):
+                # =================================================================
+                mirror = P1.df_vol[..., ::-1]
+                cplot = mlab.contour3d(mirror,contours=self.isosurface,
+                                       color=(0.5, 0.5, 0.5),
+                                       figure=Mayavi_Rho.fig3)
+                cplot.actor.actor.orientation = np.array([0., -90., 0.]) #ZULU?
+    
+                cplot.actor.actor.origin = np.array([len(P1.df_vol)/2,len(P1.df_vol)/2,len(P1.df_vol)/2])
+                cplot.actor.actor.position = np.array([-len(P1.df_vol)/2,-len(P1.df_vol)/2,-len(P1.df_vol)/2])
+    
+                cplot.actor.property.backface_culling = True
+                cplot.compute_normals = False
+                cplot.actor.property.opacity = self.volume_alpha
+    
+                # =================================================================
+                # Align-to-grid data:
+                # =================================================================
+                phi, theta = np.mgrid[0:np.pi:11j, 0:2*np.pi:11j]
+                x = np.sin(phi) * np.cos(theta)
+                y = np.sin(phi) * np.sin(theta)
+                z = np.cos(phi)
+                testPlot = mlab.mesh(x, y, z, representation='wireframe', color=(1, 1, 1))
+                testPlot.actor.actor.scale = np.multiply(self.S2_scale,
+                                                    np.array([len(P1.df_vol)/float(np.sqrt(2)),
+                                                              len(P1.df_vol)/float(np.sqrt(2)),
+                                                              len(P1.df_vol)/float(np.sqrt(2))]))
+                testPlot.actor.property.opacity = 0
+    
+                # =================================================================
+                # S2 Distribution (scatter):
+                # =================================================================
+                splot = mlab.points3d(P1.x2,P1.y2,P1.z2,P3.col, scale_mode='none',
+                                      scale_factor=0.05, figure=Mayavi_Rho.fig3)
+                splot.actor.property.backface_culling = True
+    
+                splot.actor.actor.scale = np.multiply(self.S2_scale,
+                                            np.array([len(P1.df_vol)/float(np.sqrt(2)),
+                                                      len(P1.df_vol)/float(np.sqrt(2)),
+                                                      len(P1.df_vol)/float(np.sqrt(2))]))
+                splot.actor.actor.origin = np.array([0,0,0])
+                splot.actor.actor.position = np.array([0,0,0])
+    
+                # =================================================================
+                # S2 Anchors (sparse scatter):
+                # =================================================================
+                aplot = mlab.points3d(P1.x3,P1.y3,P1.z3, scale_mode='none',
+                                      scale_factor=0.06, figure=Mayavi_Rho.fig3)
+    
+                aplot.actor.property.backface_culling = True
+                aplot.glyph.color_mode = 'no_coloring'
+                aplot.actor.property.color = (1.0, 1.0, 1.0)
+                aplot.actor.actor.scale = np.multiply(self.S2_scale,
+                                            np.array([len(P1.df_vol)/float(np.sqrt(2)),
+                                                      len(P1.df_vol)/float(np.sqrt(2)),
+                                                      len(P1.df_vol)/float(np.sqrt(2))]))
+                aplot.actor.actor.origin = np.array([0,0,0])
+                aplot.actor.actor.position = np.array([0,0,0])
+    
+                self.anchorsUpdate = aplot.mlab_source
+    
+                # =================================================================
+                # S2 Trash (sparse scatter):
+                # =================================================================
+                tplot = mlab.points3d(P1.x4,P1.y4,P1.z4, scale_mode='none',
+                                      scale_factor=0.06, figure=Mayavi_Rho.fig3)
+    
+                tplot.actor.property.backface_culling = True
+                tplot.glyph.color_mode = 'no_coloring'
+                tplot.actor.property.color = (0.0, 0.0, 0.0)
+                tplot.actor.actor.scale = np.multiply(self.S2_scale,
+                                            np.array([len(P1.df_vol)/float(np.sqrt(2)),
+                                                      len(P1.df_vol)/float(np.sqrt(2)),
+                                                      len(P1.df_vol)/float(np.sqrt(2))]))
+                tplot.actor.actor.origin = np.array([0,0,0])
+                tplot.actor.actor.position = np.array([0,0,0])
+    
+                self.trashUpdate = tplot.mlab_source
+    
+            else: #only update anchors
+                self.anchorsUpdate.reset(x=P1.x3, y=P1.y3, z=P1.z3)
+                self.trashUpdate.reset(x=P1.x4, y=P1.y4, z=P1.z4)
+    
+            # =====================================================================
+            # reposition camera to previous:
+            # =====================================================================
+            mlab.view(*view)
+            mlab.roll(roll)
+            
+            def press_callback(vtk_obj, event): #left mouse down callback
+                self.click_on = 1
+    
+            def release_callback(vtk_obj, event): #left mouse release callback
+                if self.click_on == 1:
+                    self.click_on = 0
+                    # =============================================================
+                    # magnetize to nearest PrD:
+                    # =============================================================
+                    # CONVENTIONS:
+                    # =============================================================
+                    # mayavi angle 0 -> [-180, 180]: azimuth, phi, longitude
+                    # mayavi angle 1 -> [0, 180]: elevation/inclination, theta, latitude
+                    # =============================================================
+                    angles = self.scene3.mlab.view(figure=Mayavi_Rho.fig3)
+                    phi0 = angles[0]*np.pi/180
+                    theta0 = angles[1]*np.pi/180
+    
+                    r0 = 1
+                    x0 = (r0*np.sin(theta0)*np.cos(phi0))
+                    y0 = (r0*np.sin(theta0)*np.sin(phi0))
+                    z0 = (r0*np.cos(theta0))
                     
-                    d = np.sqrt( (x1-x0)**2 + (y1-y0)**2 + (z1-z0)**2 )
-
-                    if not dists:
-                        dists.append(d)
-                        indexes.append(idx)
-                    if dists:
-                        if d < np.amin(dists):
+                    # read points from tesselated sphere:
+                    fname = os.path.join(P1.user_directory,'outputs_{}/topos/Euler_PrD/PrD_map.txt'.format(p.proj_name))
+                    data = []
+                    with open(fname) as values:
+                        for column in zip(*[line for line in csv.reader(values, dialect="excel-tab")]):
+                            data.append(column)
+    
+                    prds = data[0]
+                    thetas = data[1]
+                    phis = data[2]
+                    psis = data[3]
+                    xs = data[4]
+                    ys = data[5]
+                    zs = data[6]
+    
+                    xyz = np.column_stack((xs,ys,zs))
+                    angs = np.column_stack((thetas,phis))
+                    dists = [] #distances between current and all tesselated points
+                    indexes = []
+                    idx = 0
+                    # find nearest neighbor (pythagorean):
+                    for i,j,k in xyz:
+                        x1 = float(i)
+                        y1 = float(j)
+                        z1 = float(k)
+                        
+                        d = np.sqrt( (x1-x0)**2 + (y1-y0)**2 + (z1-z0)**2 )
+    
+                        if not dists:
                             dists.append(d)
                             indexes.append(idx)
-                    idx += 1
-                # update view:
-                current = self.scene3.mlab.view(figure=Mayavi_Rho.fig3) #grab current distance
-                self.scene3.mlab.view(azimuth=float(phis[indexes[-1]]),
-                                      elevation=float(thetas[indexes[-1]]),
-                                      distance=current[2],
-                                      roll=float(phis[indexes[-1]])+270,
-                                      #reset_roll=False, #ZULU: still need to correct volume in-plane rotation to match image's
-                                      figure=Mayavi_Rho.fig3)
-                P4.entry_PrD.setValue(indexes[-1]+1) #update PrD and thus topos
-                self.phi = '%s%s' % (round(float(phis[indexes[-1]]),2), u"\u00b0")
-                self.theta = '%s%s' % (round(float(thetas[indexes[-1]]),2), u"\u00b0")
-                                      
-        Mayavi_Rho.fig3.scene.scene.interactor.add_observer('LeftButtonPressEvent', press_callback)
-        Mayavi_Rho.fig3.scene.scene.interactor.add_observer('EndInteractionEvent', release_callback)
-
-        # live update of Euler angles:
-        def press_callback_Eul(vtk_obj, event): #left mouse down callback
-            self.click_on_Eul = 1
-
-        def hold_callback_Eul(vtk_obj, event): #camera rotate callback
-            if self.click_on_Eul > 0:
-                viewS2 = self.scene3.mlab.view(figure=Mayavi_Rho.fig3)
-                self.phi = '%s%s' % (round(viewS2[0],2), u"\u00b0")
-                self.theta = '%s%s' % (round(viewS2[1],2), u"\u00b0")
-
-        def release_callback_Eul(vtk_obj, event): #left mouse release callback
-            if self.click_on_Eul == 1:
-                self.click_on_Eul = 0
-
-        Mayavi_Rho.fig3.scene.scene.interactor.add_observer('LeftButtonPressEvent', press_callback_Eul)
-        Mayavi_Rho.fig3.scene.scene.interactor.add_observer('InteractionEvent', hold_callback_Eul)
-        Mayavi_Rho.fig3.scene.scene.interactor.add_observer('EndInteractionEvent', release_callback_Eul)
-
-
-    title = Str
-    def _title_default(self):
-        return 'Electrostatic Potential Map'
-        
-    view = View(VGroup(
-                    Group(
-                        Item('title',springy=False,show_label=False,style='readonly',
-                             style_sheet='*{font: "Arial"; font-size:12px; qproperty-alignment:AlignCenter}'),
-                        Item('scene3', editor = SceneEditor(scene_class=MayaviScene),
-                            height=1, width=1, show_label=False, springy=True),
+                        if dists:
+                            if d < np.amin(dists):
+                                dists.append(d)
+                                indexes.append(idx)
+                        idx += 1
+                    # update view:
+                    current = self.scene3.mlab.view(figure=Mayavi_Rho.fig3) #grab current distance
+                    self.scene3.mlab.view(azimuth=float(phis[indexes[-1]]),
+                                          elevation=float(thetas[indexes[-1]]),
+                                          distance=current[2],
+                                          roll=float(phis[indexes[-1]])+270,
+                                          #reset_roll=False, #ZULU: still need to correct volume in-plane rotation to match image's
+                                          figure=Mayavi_Rho.fig3)
+                    P4.entry_PrD.setValue(indexes[-1]+1) #update PrD and thus topos
+                    self.phi = '%s%s' % (round(float(phis[indexes[-1]]),2), u"\u00b0")
+                    self.theta = '%s%s' % (round(float(thetas[indexes[-1]]),2), u"\u00b0")
+                                          
+            Mayavi_Rho.fig3.scene.scene.interactor.add_observer('LeftButtonPressEvent', press_callback)
+            Mayavi_Rho.fig3.scene.scene.interactor.add_observer('EndInteractionEvent', release_callback)
+    
+            # live update of Euler angles:
+            def press_callback_Eul(vtk_obj, event): #left mouse down callback
+                self.click_on_Eul = 1
+    
+            def hold_callback_Eul(vtk_obj, event): #camera rotate callback
+                if self.click_on_Eul > 0:
+                    viewS2 = self.scene3.mlab.view(figure=Mayavi_Rho.fig3)
+                    self.phi = '%s%s' % (round(viewS2[0],2), u"\u00b0")
+                    self.theta = '%s%s' % (round(viewS2[1],2), u"\u00b0")
+    
+            def release_callback_Eul(vtk_obj, event): #left mouse release callback
+                if self.click_on_Eul == 1:
+                    self.click_on_Eul = 0
+    
+            Mayavi_Rho.fig3.scene.scene.interactor.add_observer('LeftButtonPressEvent', press_callback_Eul)
+            Mayavi_Rho.fig3.scene.scene.interactor.add_observer('InteractionEvent', hold_callback_Eul)
+            Mayavi_Rho.fig3.scene.scene.interactor.add_observer('EndInteractionEvent', release_callback_Eul)
+    
+    
+        title = Str
+        def _title_default(self):
+            return 'Electrostatic Potential Map'
+            
+        view = View(VGroup(
+                        Group(
+                            Item('title',springy=False,show_label=False,style='readonly',
+                                 style_sheet='*{font: "Arial"; font-size:12px; qproperty-alignment:AlignCenter}'),
+                            Item('scene3', editor = SceneEditor(scene_class=MayaviScene),
+                                height=1, width=1, show_label=False, springy=True),
+                            ),
+                    VGroup(
+                        HGroup(
+                            Item('phi',springy=True,show_label=True,#style='readonly',
+                                 editor=TextEditor(evaluate=float),
+                                 enabled_when='phi == float(0)', #i.e., never
+                                 ),
+                            Item('theta',springy=True,show_label=True,#style='readonly',
+                                 editor=TextEditor(evaluate=float),
+                                 enabled_when='phi == float(0)', #i.e., never
+                                 ),
                         ),
-                VGroup(
-                    HGroup(
-                        Item('phi',springy=True,show_label=True,#style='readonly',
-                             editor=TextEditor(evaluate=float),
-                             enabled_when='phi == float(0)', #i.e., never
-                             ),
-                        Item('theta',springy=True,show_label=True,#style='readonly',
-                             editor=TextEditor(evaluate=float),
-                             enabled_when='phi == float(0)', #i.e., never
-                             ),
+                        show_border=False, orientation='vertical'
                     ),
-                    show_border=False, orientation='vertical'
-                ),
-                ),
-                resizable=True,
-                )
+                    ),
+                    resizable=True,
+                    )
     
 # =============================================================================
 # GUI tab 1:
@@ -9755,6 +9768,7 @@ class MainWindow(QtGui.QMainWindow):
         tabs.setCurrentIndex(0)
 
     def gotoP2(self):
+        print('Processing orientations...')
         P1.button_toP2.setDisabled(True)
         p.S2iso = MainWindow.S2_iso
         p.S2iso_prev = MainWindow.S2_iso
