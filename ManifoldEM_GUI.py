@@ -104,6 +104,8 @@ Beta = True #set to 'True' to disable 2D options; if disabled ('False') within t
 #0.1.0: alpha (2019)
 #0.2.0: beta (2021)
 Graphics = True #set to 'False' to disable 3D graphics, which may be helpful for ssh GUI use on remote workstations (to get past tab 2 and run on tab 3 only)
+if Graphics is False:
+    print('Mode set: 3D graphics disabled.')
 font_header = QtGui.QFont('Arial', 13)
 font_standard = QtGui.QFont('Arial', 12)
 anchorsMin = 1 #set minimum number of anchors needed for Belief Propagation
