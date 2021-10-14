@@ -46,8 +46,8 @@ if Batch is False: #standard use (view one PD embedding at a time)
         data = pickle.load(fname)
         DM = data['psi']
         
-        s = 20
-        lw = .5
+        s = 1
+        lw = .1
         idx = 1
         print(np.shape(DM))
         m = np.shape(DM)[0]
@@ -121,8 +121,8 @@ else: #batch print all PD embeddings to files in current directory
         data = pickle.load(fname)
         DM = data['psi']
         
-        s = 20
-        lw = .5
+        s = 1
+        lw = .1
         idx = 1
         print(PD+1, np.shape(DM)[0])
         m = np.shape(DM)[0]
