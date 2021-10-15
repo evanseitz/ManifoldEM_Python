@@ -1,9 +1,9 @@
 import os, sys
 from pyface.qt import QtGui, QtCore
-os.environ['ETS_TOOLKIT'] = 'qt4'
+#os.environ['ETS_TOOLKIT'] = 'qt4'
 import matplotlib
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+#from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from matplotlib.widgets import Slider, Button
 import mpl_toolkits.axes_grid1
@@ -38,8 +38,7 @@ outDir = os.path.join(parDir, 'outputs_%s/distances' % projName)
 PD = 0 #PD index (from index 0 to N-1)
 
 if 1: #imgAvg: Image Average
-    #fname = open(os.path.join(outDir, 'IMGs_prD_%s' % PD), 'r')
-    fname = open(os.path.join(outDir,'IMGs_prD_%s' % (PD)))
+    fname = open(os.path.join(outDir,'IMGs_prD_%s' % PD), 'rb')
     data = pickle.load(fname)
     img = data['imgAvg']
     imshow(img, cmap='gray')

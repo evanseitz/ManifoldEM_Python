@@ -1,9 +1,9 @@
 import os
 from pyface.qt import QtGui, QtCore
-os.environ['ETS_TOOLKIT'] = 'qt4'
+#os.environ['ETS_TOOLKIT'] = 'qt4'
 import matplotlib
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+#from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from matplotlib.widgets import Slider, Button
 import mpl_toolkits.axes_grid1
