@@ -24,7 +24,9 @@ ManifoldEM Python team (alphabetically ordered):
 Individual author contributions to code are provided in the headers of each script.
 
 ### Attribution
-If you find this code useful in your work, please cite {**ManifoldEM Python repository**, `doi: 10.5281/zenodo.5578874`}.
+If you find this code useful in your work, please cite
+
+Seitz et al., "ManifoldEM Python repository", *Zenodo*, Nov. 2021, doi: 10.5281/zenodo.5578874.
 [![DOI](https://zenodo.org/badge/405477119.svg)](https://zenodo.org/badge/latestdoi/405477119)
 
 
