@@ -26,7 +26,7 @@ Individual author contributions to code are provided in the headers of each scri
 ### Attribution
 If you find this code useful in your work, please cite
 
-E. Seitz et al., "ManifoldEM Python repository," *Zenodo*, 2021, doi: 10.5281/zenodo.5578874.
+{E. Seitz et al., "ManifoldEM Python repository," *Zenodo*, 2021, doi: 10.5281/zenodo.5578874}
 
 [![DOI](https://zenodo.org/badge/405477119.svg)](https://zenodo.org/badge/latestdoi/405477119)
 
