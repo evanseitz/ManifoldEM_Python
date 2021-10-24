@@ -5,6 +5,7 @@ import set_params
 '''
 Copyright (c) Columbia University Sonya Hanson 2018
 Copyright (c) Columbia University Hstau Liao 2019
+Copyright (c) Columbia University Evan Seitz 2021
 ''' 
 
 def write_star(star_file, traj_file, df):
@@ -21,7 +22,35 @@ def write_star(star_file, traj_file, df):
 This parse_star function is from version 0.1 of pyem by Daniel Asarnow at UCSF
 '''
 
-def parse_star(starfile, keep_index=False):
+def parse_star(starfile, skip, keep_index=False):
+    headers = []
+    foundheader = False
+    ln = 0
+    with open(starfile, 'rU') as f:
+        for l in f:
+            if ln < skip:
+                ln += 1
+            else:
+                if l.startswith("_rln"):
+                    foundheader = True
+                    lastheader = True
+                    if keep_index:
+                        head = l.rstrip()
+                    else:
+                        head = l.split('#')[0].rstrip().lstrip('_')
+                    headers.append(head)
+                else:
+                    lastheader = False
+                if foundheader and not lastheader:
+                    break
+                ln += 1
+    star = pd.read_table(starfile, skiprows=ln, delimiter='\s+', header=None)
+    star.columns = headers
+    
+    return star
+
+
+def parse_star_optics(starfile, keep_index=False): #added by E. Seitz -- 10/23/21
     headers = []
     foundheader = False
     ln = 0
@@ -40,6 +69,7 @@ def parse_star(starfile, keep_index=False):
             if foundheader and not lastheader:
                 break
             ln += 1
-    star = pd.read_table(starfile, skiprows=ln, delimiter='\s+', header=None)
+    star = pd.read_table(starfile, skiprows=ln, delimiter='\s+', header=None, nrows=1)
     star.columns = headers
-    return star
+    
+    return (star, ln+1)
